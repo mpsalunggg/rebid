@@ -28,10 +28,17 @@ func (r *SimpleRouter) Listen(addr string) error {
 	return http.ListenAndServe(addr, r.mux)
 }
 
+const version = "/api/v1"
+
+func apiPath(path string) string {
+	return version + path
+}
+
 func SetupRoutes() Router {
 	router := NewRouter()
 
 	router.HandleFunc("/health", handlers.HealthCheck)
 
+	SetupUserRoutes(router)
 	return router
 }
