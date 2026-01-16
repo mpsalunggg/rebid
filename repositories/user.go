@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	database "rebid/databases"
 	"rebid/dto"
@@ -42,14 +41,6 @@ func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 func (r *UserRepository) Create(user *dto.CreateUserRequest) (*dto.UserResponse, error) {
 	db := database.GetDB()
 
-	existing, err := r.GetByEmail(user.Email)
-	if err != nil {
-		return nil, fmt.Errorf("failed to check email: %w", err)
-	}
-	if existing != nil {
-		return nil, errors.New("email already exists")
-	}
-
 	query := `
 		INSERT INTO users (id, name, email, password, role, created_at)
 		VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())
@@ -57,7 +48,7 @@ func (r *UserRepository) Create(user *dto.CreateUserRequest) (*dto.UserResponse,
 	`
 
 	var response dto.UserResponse
-	err = db.QueryRow(
+	err := db.QueryRow(
 		query,
 		user.Name,
 		user.Email,

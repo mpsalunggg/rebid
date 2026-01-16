@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"rebid/dto"
 	"rebid/models"
@@ -23,6 +24,15 @@ func (s *UserService) RegisterUser(user *dto.CreateUserRequest) (*dto.UserRespon
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
+
+	existingUser, err := s.repo.GetByEmail(user.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check email: %w", err)
+	}
+	if existingUser != nil {
+		return nil, errors.New("email already exists")
+	}
+
 	user.Password = hashedPassword
 	return s.repo.Create(user)
 }
