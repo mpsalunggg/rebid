@@ -37,8 +37,11 @@ build: ## Build app
 run: ## Run app
 	@go run ./cmd/app/
 
+air: ## Run auto reload
+	@air
+
 clean: ## Clean build files
-	@rm -rf bin/ tmp/
+	@rm -rf bin/
 
 install-deps: ## Install dependencies
 	@go mod download

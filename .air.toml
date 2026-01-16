@@ -1,0 +1,10 @@
+root = "."
+tmp_dir = "bin"
+
+[build]
+cmd = "make build"
+bin = "bin/rebid"
+exclude_dir = ["bin"]
+
+[run]
+cmd = "./bin/rebid"
