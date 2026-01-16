@@ -1,8 +1,7 @@
 package services
 
 import (
-	"errors"
-	"fmt"
+	"net/http"
 	"rebid/dto"
 	"rebid/models"
 	"rebid/repositories"
@@ -22,19 +21,24 @@ func NewUserService() *UserService {
 func (s *UserService) RegisterUser(user *dto.CreateUserRequest) (*dto.UserResponse, error) {
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
-		return nil, fmt.Errorf("failed to hash password: %w", err)
+		return nil, utils.NewError("failed to hash password", http.StatusInternalServerError)
 	}
 
 	existingUser, err := s.repo.GetByEmail(user.Email)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check email: %w", err)
+		return nil, utils.NewError("failed to check email", http.StatusInternalServerError)
 	}
 	if existingUser != nil {
-		return nil, errors.New("email already exists")
+		return nil, utils.NewError("email already exists", http.StatusBadRequest)
 	}
 
 	user.Password = hashedPassword
-	return s.repo.Create(user)
+	result, err := s.repo.Create(user)
+	if err != nil {
+		return nil, utils.NewError("failed to create user", http.StatusInternalServerError)
+	}
+
+	return result, nil
 }
 
 func (s *UserService) GetUserByID(id string) (*models.User, error) {

@@ -5,33 +5,38 @@ import (
 	"net/http"
 	"rebid/dto"
 	"rebid/services"
+	"rebid/utils"
 )
 
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
 		return
 	}
 
 	request := &dto.CreateUserRequest{}
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
+		return
+	}
+
+	if err := request.Validate(); err != nil {
+		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse(err.Error()))
 		return
 	}
 
 	userService := services.NewUserService()
 	user, err := userService.RegisterUser(request)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		utils.HandleServiceError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	response := map[string]interface{}{
-		"message": "User registered successfully",
-		"data":    user,
-	}
-	json.NewEncoder(w).Encode(response)
+	utils.JSONResponse(
+		w,
+		http.StatusCreated,
+		utils.SuccessResponse("User registered successfully", user),
+	)
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
