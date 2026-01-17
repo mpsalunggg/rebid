@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -17,6 +18,7 @@ type Config struct {
 	DBName    string
 	DBSSLMode string
 	JWTSecret string
+	JWTExpiry time.Duration
 }
 
 func (c *Config) DBConnectionString() string {
@@ -29,6 +31,12 @@ func (c *Config) DBConnectionString() string {
 func Load() (*Config, error) {
 	_ = godotenv.Load()
 
+	jwtExpiryStr := getEnv("JWT_EXPIRY_HOURS", "24")
+	jwtExpiry := 24 * time.Hour
+	if expiryHours := parseDuration(jwtExpiryStr); expiryHours > 0 {
+		jwtExpiry = expiryHours * time.Hour
+	}
+
 	config := &Config{
 		Port:      getEnv("PORT", "8080"),
 		Host:      getEnv("HOST", "localhost"),
@@ -39,6 +47,7 @@ func Load() (*Config, error) {
 		DBName:    getEnv("DB_NAME", "rebid_db"),
 		DBSSLMode: getEnv("DB_SSLMODE", "disable"),
 		JWTSecret: getEnv("JWT_SECRET", "your-secret-key-here"),
+		JWTExpiry: jwtExpiry,
 	}
 
 	return config, nil
@@ -49,4 +58,13 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func parseDuration(s string) time.Duration {
+	var hours int
+	fmt.Sscanf(s, "%d", &hours)
+	if hours > 0 {
+		return time.Duration(hours)
+	}
+	return 0
 }

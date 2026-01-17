@@ -8,7 +8,7 @@ import (
 type Response struct {
 	Error   bool        `json:"error"`
 	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	Data    interface{} `json:"data,omitempty"`
 }
 
 func SuccessResponse(message string, data interface{}) Response {
@@ -23,7 +23,6 @@ func ErrorResponse(message string) Response {
 	return Response{
 		Error:   true,
 		Message: message,
-		Data:    nil,
 	}
 }
 

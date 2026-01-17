@@ -6,6 +6,7 @@ import (
 	"os"
 	"rebid/config"
 	database "rebid/databases"
+	"rebid/handlers"
 	"rebid/routes"
 )
 
@@ -32,6 +33,7 @@ func RunServer() {
 	}
 	defer database.CloseDB()
 
+	handlers.InitHandlers(cfg)
 	router := routes.SetupRoutes()
 
 	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
