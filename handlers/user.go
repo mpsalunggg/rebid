@@ -3,19 +3,14 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"rebid/config"
 	"rebid/dto"
-	"rebid/services"
+	"rebid/middleware"
 	"rebid/utils"
+
+	"github.com/google/uuid"
 )
 
-var cfg *config.Config
-
-func InitHandlers(config *config.Config) {
-	cfg = config
-}
-
-func RegisterUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
 		return
@@ -32,8 +27,12 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userService := services.NewUserService(cfg)
-	user, err := userService.RegisterUser(request)
+	if h.userService == nil {
+		utils.JSONResponse(w, http.StatusInternalServerError, utils.ErrorResponse("Service not initialized"))
+		return
+	}
+
+	user, err := h.userService.RegisterUser(request)
 	if err != nil {
 		utils.HandleServiceError(w, err)
 		return
@@ -46,14 +45,13 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func LoginUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
 		return
 	}
 
 	request := &dto.LoginRequest{}
-
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
 		return
@@ -64,8 +62,12 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userService := services.NewUserService(cfg)
-	loginResponse, err := userService.LoginUser(request)
+	if h.userService == nil {
+		utils.JSONResponse(w, http.StatusInternalServerError, utils.ErrorResponse("Service not initialized"))
+		return
+	}
+
+	loginResponse, err := h.userService.LoginUser(request)
 	if err != nil {
 		utils.HandleServiceError(w, err)
 		return
@@ -76,19 +78,48 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		http.StatusOK,
 		utils.SuccessResponse("Login success", loginResponse),
 	)
-
 }
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
 		return
 	}
 
-	response := map[string]interface{}{
-		"users": []interface{}{},
+	if h.userService == nil {
+		utils.JSONResponse(w, http.StatusInternalServerError, utils.ErrorResponse("Service not initialized"))
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	userID, err := middleware.GetUserByID(r)
+	if err != nil {
+		utils.JSONResponse(w, http.StatusUnauthorized, utils.ErrorResponse("User not authenticated"))
+		return
+	}
+
+	user, err := h.userService.GetUserByID(userID.String())
+	if err != nil {
+		utils.HandleServiceError(w, err)
+		return
+	}
+
+	if user == nil {
+		utils.JSONResponse(w, http.StatusNotFound, utils.ErrorResponse("User not found"))
+		return
+	}
+
+	if user.ID == (uuid.UUID{}) {
+		utils.JSONResponse(w, http.StatusInternalServerError, utils.ErrorResponse("Invalid user data"))
+		return
+	}
+
+	response := dto.UserResponse{
+		ID:        user.ID.String(),
+		Name:      user.Name,
+		Email:     user.Email,
+		Role:      string(user.Role),
+		CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
+
+	utils.JSONResponse(w, http.StatusOK, utils.SuccessResponse("User retrieved successfully", response))
 }

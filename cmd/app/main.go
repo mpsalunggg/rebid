@@ -3,19 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"rebid/config"
 	database "rebid/databases"
-	"rebid/handlers"
 	"rebid/routes"
 )
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "seed" {
-		RunSeed()
-		return
-	}
-
 	RunServer()
 }
 
@@ -33,8 +26,7 @@ func RunServer() {
 	}
 	defer database.CloseDB()
 
-	handlers.InitHandlers(cfg)
-	router := routes.SetupRoutes()
+	router := routes.SetupRoutes(cfg)
 
 	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 	fmt.Printf("Server starting on http://%s\n", addr)

@@ -6,24 +6,45 @@ import (
 	database "rebid/databases"
 	"rebid/dto"
 	"rebid/models"
+
+	"github.com/google/uuid"
 )
 
-type UserRepository struct{}
+type UserRepository struct {
+	db *sql.DB
+}
 
 func NewUserRepository() *UserRepository {
-	return &UserRepository{}
+	return &UserRepository{
+		db: database.GetDB(),
+	}
 }
 
 func (r *UserRepository) GetByID(id string) (*models.User, error) {
-	_ = database.GetDB()
-	return nil, nil
+	userUUID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID format: %w", err)
+	}
+
+	var user models.User
+	err = r.db.QueryRow(
+		"SELECT id, name, email, role, created_at FROM users WHERE id = $1",
+		userUUID,
+	).Scan(&user.ID, &user.Name, &user.Email, &user.Role, &user.CreatedAt)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by ID: %w", err)
+	}
+
+	return &user, nil
 }
 
 func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
-	db := database.GetDB()
 	var user models.User
-
-	err := db.QueryRow(
+	err := r.db.QueryRow(
 		"SELECT id, name, email, password, role, created_at FROM users WHERE email = $1",
 		email,
 	).Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Role, &user.CreatedAt)
@@ -39,8 +60,6 @@ func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 }
 
 func (r *UserRepository) Create(user *dto.CreateUserRequest) (*dto.UserResponse, error) {
-	db := database.GetDB()
-
 	query := `
 		INSERT INTO users (id, name, email, password, role, created_at)
 		VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())
@@ -48,7 +67,7 @@ func (r *UserRepository) Create(user *dto.CreateUserRequest) (*dto.UserResponse,
 	`
 
 	var response dto.UserResponse
-	err := db.QueryRow(
+	err := r.db.QueryRow(
 		query,
 		user.Name,
 		user.Email,
