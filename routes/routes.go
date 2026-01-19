@@ -53,5 +53,6 @@ func SetupRoutes(cfg *config.Config) Router {
 	router.HandleFunc("/health", handler.HealthCheck)
 
 	SetupUserRoutes(router, cfg, handler)
+	SetupItemRoutes(router, cfg, handler)
 	return router
 }
