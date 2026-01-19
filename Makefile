@@ -28,6 +28,13 @@ migrate-up: ## Run migrations
 migrate-down: ## Rollback last migration
 	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path ./databases/migration -database "$(DB_URL)" down 1
 
+migrate-force: ## Force migration version (usage: make migrate-force VERSION=3)
+	@if [ -z "$(VERSION)" ]; then \
+		echo "❌ Error: VERSION required. Example: make migrate-force VERSION=3"; \
+		exit 1; \
+	fi
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path ./databases/migration -database "$(DB_URL)" force $(VERSION)
+
 seed: ## Run seeders
 	@go run ./cmd/app seed
 
