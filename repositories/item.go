@@ -60,3 +60,29 @@ func (r *ItemRepository) Create(item *dto.CreateItemRequest, userID uuid.UUID) (
 	response.UpdatedAt = updatedAt.Format(time.RFC3339)
 	return &response, nil
 }
+
+func (r *ItemRepository) GetByID(userID uuid.UUID) (*dto.ItemResponse, error) {
+	query := `
+		SELECT id, user_id, name, description, image, starting_price, created_at, updated_at
+		FROM items
+		WHERE id = $1
+	`
+
+	var response dto.ItemResponse
+	err := r.db.QueryRow(query, userID).Scan(
+		&response.ID,
+		&response.UserID,
+		&response.Name,
+		&response.Description,
+		&response.Image,
+		&response.StartingPrice,
+		&response.CreatedAt,
+		&response.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get item by ID: %w", err)
+	}
+
+	return &response, nil
+}

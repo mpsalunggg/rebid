@@ -35,3 +35,17 @@ func (s *ItemService) CreateItem(item *dto.CreateItemRequest, userID string) (*d
 
 	return result, nil
 }
+
+func (s *ItemService) GetItemByID(userID string) (*dto.ItemResponse, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, utils.NewError("invalid user ID format", http.StatusBadRequest)
+	}
+
+	result, err := s.repo.GetByID(userUUID)
+	if err != nil {
+		return nil, utils.NewError(err.Error(), http.StatusInternalServerError)
+	}
+
+	return result, nil
+}

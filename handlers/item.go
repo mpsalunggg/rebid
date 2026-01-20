@@ -43,3 +43,25 @@ func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		utils.SuccessResponse("Item created successfully", item),
 	)
 }
+
+func (h *Handler) GetItemByID(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
+		return
+	}
+
+	id := r.PathValue("id")
+
+	if id == "" {
+		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("ID is required"))
+		return
+	}
+
+	item, err := h.itemService.GetItemByID(id)
+	if err != nil {
+		utils.HandleServiceError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, utils.SuccessResponse("Item retrieved successfully", item))
+}
