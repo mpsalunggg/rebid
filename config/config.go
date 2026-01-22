@@ -19,6 +19,8 @@ type Config struct {
 	DBSSLMode string
 	JWTSecret string
 	JWTExpiry time.Duration
+	UploadDir string
+	BaseURL   string
 }
 
 func (c *Config) DBConnectionString() string {
@@ -48,6 +50,8 @@ func Load() (*Config, error) {
 		DBSSLMode: getEnv("DB_SSLMODE", "disable"),
 		JWTSecret: getEnv("JWT_SECRET", "your-secret-key-here"),
 		JWTExpiry: jwtExpiry,
+		UploadDir: getEnv("UPLOAD_DIR", "./uploads"),
+		BaseURL:   getEnv("BASE_URL", "http://localhost:8080"),
 	}
 
 	return config, nil

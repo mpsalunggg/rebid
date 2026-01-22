@@ -51,6 +51,9 @@ func SetupRoutes(cfg *config.Config) Router {
 	handler := handlers.NewHandler(cfg)
 
 	router.HandleFunc("/health", handler.HealthCheck)
+	router.HandleFunc("/uploads/", func(w http.ResponseWriter, r *http.Request) {
+		http.StripPrefix("/uploads/", http.FileServer(http.Dir(cfg.UploadDir))).ServeHTTP(w, r)
+	})
 
 	SetupUserRoutes(router, cfg, handler)
 	SetupItemRoutes(router, cfg, handler)

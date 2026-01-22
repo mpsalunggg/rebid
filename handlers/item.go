@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 	"rebid/dto"
 	"rebid/middleware"
 	"rebid/utils"
+	"strconv"
 )
 
 func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
@@ -20,16 +21,52 @@ func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request := &dto.CreateItemRequest{}
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Invalid request body"))
+	err = r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Failed to parse form data"))
 		return
+	}
+
+	name := r.FormValue("name")
+	description := r.FormValue("description")
+	startingPriceStr := r.FormValue("starting_price")
+
+	var startingPrice float64
+	if startingPriceStr != "" {
+		var err error
+		startingPrice, err = strconv.ParseFloat(startingPriceStr, 64)
+		if err != nil {
+			utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Invalid starting_price format"))
+			return
+		}
+	}
+
+	request := &dto.CreateItemRequest{
+		Name:          name,
+		Description:   description,
+		StartingPrice: startingPrice,
 	}
 
 	if err := request.Validate(); err != nil {
 		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse(err.Error()))
 		return
 	}
+	uploadedFiles, err := utils.SaveMultipleUploadedFiles(r, "images", h.cfg.UploadDir)
+	if err != nil {
+		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse(fmt.Sprintf("Failed to upload images: %v", err)))
+		return
+	}
+	var images []dto.CreateItemImageData
+	for _, file := range uploadedFiles {
+		images = append(images, dto.CreateItemImageData{
+			URL:      file.Path,
+			Filename: file.Filename,
+			MimeType: file.MimeType,
+			Size:     file.Size,
+		})
+	}
+
+	request.Images = images
 
 	item, err := h.itemService.CreateItem(request, userID.String())
 	if err != nil {

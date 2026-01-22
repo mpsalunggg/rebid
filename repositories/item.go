@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	database "rebid/databases"
 	"rebid/dto"
@@ -22,9 +23,9 @@ func NewItemRepository() *ItemRepository {
 
 func (r *ItemRepository) Create(item *dto.CreateItemRequest, userID uuid.UUID) (*dto.ItemResponse, error) {
 	query := `
-		INSERT INTO items (id, user_id, name, description, image, starting_price, created_at, updated_at)
-		VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW())
-		RETURNING id, user_id, name, description, image, starting_price, created_at, updated_at
+		INSERT INTO items (id, user_id, name, description, starting_price, created_at, updated_at)
+		VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW(), NOW())
+		RETURNING id, user_id, name, description, starting_price, created_at, updated_at
 	`
 
 	var response dto.ItemResponse
@@ -38,14 +39,12 @@ func (r *ItemRepository) Create(item *dto.CreateItemRequest, userID uuid.UUID) (
 		userID,
 		item.Name,
 		item.Description,
-		item.Image,
 		item.StartingPrice,
 	).Scan(
 		&response.ID,
 		&response.UserID,
 		&response.Name,
 		&response.Description,
-		&response.Image,
 		&response.StartingPrice,
 		&createdAt,
 		&updatedAt,
@@ -61,27 +60,49 @@ func (r *ItemRepository) Create(item *dto.CreateItemRequest, userID uuid.UUID) (
 	return &response, nil
 }
 
-func (r *ItemRepository) GetByID(userID uuid.UUID) (*dto.ItemResponse, error) {
+func (r *ItemRepository) GetByID(itemID uuid.UUID) (*dto.ItemResponse, error) {
 	query := `
-		SELECT id, user_id, name, description, image, starting_price, created_at, updated_at
+		SELECT id, user_id, name, description, starting_price, created_at, updated_at
 		FROM items
 		WHERE id = $1
 	`
 
 	var response dto.ItemResponse
-	err := r.db.QueryRow(query, userID).Scan(
+	var (
+		createdAt time.Time
+		updatedAt sql.NullTime
+	)
+
+	err := r.db.QueryRow(query, itemID).Scan(
 		&response.ID,
 		&response.UserID,
 		&response.Name,
 		&response.Description,
-		&response.Image,
 		&response.StartingPrice,
-		&response.CreatedAt,
-		&response.UpdatedAt,
+		&createdAt,
+		&updatedAt,
 	)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("item not found")
+		}
 		return nil, fmt.Errorf("failed to get item by ID: %w", err)
+	}
+
+	response.CreatedAt = createdAt.Format(time.RFC3339)
+	if updatedAt.Valid {
+		response.UpdatedAt = updatedAt.Time.Format(time.RFC3339)
+	} else {
+		response.UpdatedAt = ""
+	}
+
+	imageRepo := NewItemImageRepository()
+	images, err := imageRepo.GetByItemID(itemID)
+	if err != nil {
+		response.Images = []dto.ItemImageResponse{}
+	} else {
+		response.Images = images
 	}
 
 	return &response, nil
