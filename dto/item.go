@@ -18,6 +18,13 @@ type CreateItemRequest struct {
 	Images        []CreateItemImageData `json:"images,omitempty"`
 }
 
+type UpdateItemRequest struct {
+	Name          string                `form:"name" json:"name"`
+	Description   string                `form:"description" json:"description"`
+	StartingPrice float64               `form:"starting_price" json:"starting_price"`
+	Images        []CreateItemImageData `json:"images,omitempty"`
+}
+
 type ItemResponse struct {
 	ID            string              `json:"id"`
 	UserID        string              `json:"user_id"`
@@ -29,21 +36,38 @@ type ItemResponse struct {
 	UpdatedAt     string              `json:"updated_at"`
 }
 
-func (r *CreateItemRequest) Validate() error {
-	if r.Name == "" {
-		return errors.New("name is required")
+func validateItem(name, description string, startingPrice float64, isCreate bool) error {
+	if isCreate {
+		if name == "" {
+			return errors.New("name is required")
+		}
+		if description == "" {
+			return errors.New("description is required")
+		}
+		if startingPrice <= 0 {
+			return errors.New("starting price must be greater than 0")
+		}
 	}
-	if len(r.Name) < 3 || len(r.Name) > 255 {
+
+	if name != "" && (len(name) < 3 || len(name) > 255) {
 		return errors.New("name must be between 3 and 255 characters")
 	}
-	if r.Description == "" {
-		return errors.New("description is required")
-	}
-	if len(r.Description) < 10 {
+
+	if description != "" && len(description) < 10 {
 		return errors.New("description must be at least 10 characters")
 	}
-	if r.StartingPrice <= 0 {
-		return errors.New("starting price must be greater than 0")
+
+	if startingPrice < 0 {
+		return errors.New("starting price cannot be negative")
 	}
+
 	return nil
+}
+
+func (r *CreateItemRequest) Validate() error {
+	return validateItem(r.Name, r.Description, r.StartingPrice, true)
+}
+
+func (r *UpdateItemRequest) Validate() error {
+	return validateItem(r.Name, r.Description, r.StartingPrice, false)
 }
