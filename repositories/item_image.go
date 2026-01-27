@@ -5,6 +5,7 @@ import (
 	"fmt"
 	database "rebid/databases"
 	"rebid/dto"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -86,4 +87,34 @@ func (r *ItemImageRepository) GetByItemID(itemID uuid.UUID) ([]dto.ItemImageResp
 	}
 
 	return images, nil
+}
+
+func (r *ItemImageRepository) DeleteByItemID(itemID uuid.UUID) error {
+	query := `DELETE FROM item_images WHERE item_id = $1`
+
+	_, err := r.db.Exec(query, itemID)
+	return err
+}
+
+func (r *ItemImageRepository) DeleteByItemIDExcept(itemID uuid.UUID, keepIDs []uuid.UUID) error {
+	if len(keepIDs) == 0 {
+		return r.DeleteByItemID(itemID)
+	}
+
+	placeholders := make([]string, len(keepIDs))
+	args := make([]interface{}, len(keepIDs)+1)
+	args[0] = itemID
+
+	for i, id := range keepIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+2)
+		args[i+1] = id
+	}
+
+	query := fmt.Sprintf(
+		`DELETE FROM item_images WHERE item_id = $1 AND id NOT IN (%s)`,
+		strings.Join(placeholders, ", "),
+	)
+
+	_, err := r.db.Exec(query, args...)
+	return err
 }

@@ -22,6 +22,7 @@ type UpdateItemRequest struct {
 	Name          string                `form:"name" json:"name"`
 	Description   string                `form:"description" json:"description"`
 	StartingPrice float64               `form:"starting_price" json:"starting_price"`
+	KeepImageIDs  []string              `form:"keep_image_ids" json:"keep_image_ids"`
 	Images        []CreateItemImageData `json:"images,omitempty"`
 }
 

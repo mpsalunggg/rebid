@@ -95,3 +95,65 @@ func (s *ItemService) GetItemByID(itemID string) (*dto.ItemResponse, error) {
 
 	return result, nil
 }
+
+func (s *ItemService) UpdateItem(itemID, userID string, req *dto.UpdateItemRequest) (*dto.ItemResponse, error) {
+	itemUUID, err := uuid.Parse(itemID)
+	if err != nil {
+		return nil, utils.NewError("invalid item ID format", http.StatusBadRequest)
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, utils.NewError("invalid user ID format", http.StatusBadRequest)
+	}
+
+	isOwner, err := s.repo.IsOwner(itemUUID, userUUID)
+	if err != nil {
+		return nil, utils.NewError("failed to verify ownership", http.StatusInternalServerError)
+	}
+	if !isOwner {
+		return nil, utils.NewError("forbidden: you don't own this item", http.StatusForbidden)
+	}
+
+	result, err := s.repo.Update(itemUUID, req)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, utils.NewError("item not found", http.StatusNotFound)
+		}
+		return nil, utils.NewError(err.Error(), http.StatusInternalServerError)
+	}
+
+	var keepUUIDs []uuid.UUID
+	for _, id := range req.KeepImageIDs {
+		if parsed, err := uuid.Parse(id); err == nil {
+			keepUUIDs = append(keepUUIDs, parsed)
+		}
+	}
+
+	if err := s.imageRepo.DeleteByItemIDExcept(itemUUID, keepUUIDs); err != nil {
+		fmt.Printf("failed to delete old images: %v\n", err)
+	}
+
+	for _, imgData := range req.Images {
+		createReq := &dto.CreateItemImageRequest{
+			ItemID:   itemUUID,
+			URL:      imgData.URL,
+			Filename: imgData.Filename,
+			MimeType: imgData.MimeType,
+			Size:     imgData.Size,
+		}
+		if _, err := s.imageRepo.Create(createReq); err != nil {
+			fmt.Printf("warning: failed to create image: %v\n", err)
+		}
+	}
+
+	images, _ := s.imageRepo.GetByItemID(itemUUID)
+	baseURL := strings.TrimSuffix(s.config.BaseURL, "/")
+	for i := range images {
+		path := strings.TrimPrefix(images[i].URL, "/")
+		images[i].URL = fmt.Sprintf("%s/%s", baseURL, path)
+	}
+	result.Images = images
+
+	return result, nil
+}

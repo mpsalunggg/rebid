@@ -107,3 +107,47 @@ func (r *ItemRepository) GetByID(itemID uuid.UUID) (*dto.ItemResponse, error) {
 
 	return &response, nil
 }
+
+func (r *ItemRepository) Update(itemId uuid.UUID, req *dto.UpdateItemRequest) (*dto.ItemResponse, error) {
+	query := `
+		UPDATE items
+		SET name = COALESCE(NULLIF($2, ''), name),
+			description = COALESCE(NULLIF($3, ''), description),
+			starting_price = CASE WHEN $4 > 0 THEN $4 ELSE starting_price END,
+			updated_at = NOW()
+		WHERE id = $1
+		RETURNING id, user_id, name, description, starting_price, created_at, updated_at
+	`
+
+	var response dto.ItemResponse
+	var createdAt, updatedAt time.Time
+
+	err := r.db.QueryRow(query, itemId, req.Name, req.Description, req.StartingPrice).Scan(
+		&response.ID,
+		&response.UserID,
+		&response.Name,
+		&response.Description,
+		&response.StartingPrice,
+		&createdAt,
+		&updatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("item not found")
+		}
+		return nil, fmt.Errorf("failed to update item: %w", err)
+	}
+
+	response.CreatedAt = createdAt.Format(time.RFC3339)
+	response.UpdatedAt = updatedAt.Format(time.RFC3339)
+
+	return &response, nil
+}
+
+func (r *ItemRepository) IsOwner(itemID, userID uuid.UUID) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM items WHERE id = $1 AND user_id = $2)`
+	var exists bool
+	err := r.db.QueryRow(query, itemID, userID).Scan(&exists)
+	return exists, err
+}
