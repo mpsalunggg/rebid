@@ -24,7 +24,6 @@ func AuthMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
-				fmt.Println("masuk1")
 				utils.JSONResponse(w, http.StatusUnauthorized, utils.ErrorResponse("Unauthorized"))
 				return
 			}
