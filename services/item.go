@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"rebid/config"
 	"rebid/dto"
 	"rebid/repositories"
@@ -156,4 +157,53 @@ func (s *ItemService) UpdateItem(itemID, userID string, req *dto.UpdateItemReque
 	result.Images = images
 
 	return result, nil
+}
+
+func (s *ItemService) DeleteItem(itemID, userID string) error {
+	itemUUID, err := uuid.Parse(itemID)
+	if err != nil {
+		return utils.NewError("invalid item ID format", http.StatusBadRequest)
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return utils.NewError("invalid user ID format", http.StatusBadRequest)
+	}
+
+	isOwner, err := s.repo.IsOwner(itemUUID, userUUID)
+	if err != nil {
+		return utils.NewError("failed to verify ownership", http.StatusInternalServerError)
+	}
+	if !isOwner {
+		return utils.NewError("forbidden: you don't own this item", http.StatusForbidden)
+	}
+
+	images, err := s.imageRepo.GetByItemID(itemUUID)
+	if err != nil {
+		fmt.Printf("warning: failed to get item images: %v\n", err)
+	}
+
+	if err := s.repo.Delete(itemUUID); err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return utils.NewError("item not found", http.StatusNotFound)
+		}
+		return utils.NewError(err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, img := range images {
+		filePath := strings.TrimPrefix(img.URL, "/")
+
+		if strings.HasPrefix(filePath, "http") {
+			parts := strings.Split(filePath, "/uploads/")
+			if len(parts) > 1 {
+				filePath = filepath.Join("uploads", parts[1])
+			}
+		}
+
+		if err := utils.DeleteFile(filePath); err != nil {
+			fmt.Printf("warning: failed to delete file %s: %v\n", filePath, err)
+		}
+	}
+
+	return nil
 }

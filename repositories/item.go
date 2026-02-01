@@ -145,6 +145,26 @@ func (r *ItemRepository) Update(itemId uuid.UUID, req *dto.UpdateItemRequest) (*
 	return &response, nil
 }
 
+func (r *ItemRepository) Delete(itemID uuid.UUID) error {
+	query := `DELETE FROM items WHERE id = $1`
+
+	result, err := r.db.Exec(query, itemID)
+	if err != nil {
+		return fmt.Errorf("failed to delete item: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("item not found")
+	}
+
+	return nil
+}
+
 func (r *ItemRepository) IsOwner(itemID, userID uuid.UUID) (bool, error) {
 	query := `SELECT EXISTS(SELECT 1 FROM items WHERE id = $1 AND user_id = $2)`
 	var exists bool

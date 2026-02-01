@@ -114,3 +114,15 @@ func isValidImageMimeType(mimeType string) bool {
 	}
 	return false
 }
+
+func DeleteFile(filePath string) error {
+	path := strings.TrimPrefix(filePath, "/")
+
+	if err := os.Remove(path); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("failed to delete file %s: %w", path, err)
+	}
+	return nil
+}

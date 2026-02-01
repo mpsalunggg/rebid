@@ -163,3 +163,29 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	utils.JSONResponse(w, http.StatusOK, utils.SuccessResponse("Item updated successfully", item))
 }
+
+func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
+		return
+	}
+
+	userID, err := middleware.GetUserByID(r)
+	if err != nil {
+		utils.JSONResponse(w, http.StatusUnauthorized, utils.ErrorResponse("User not authenticated"))
+		return
+	}
+
+	itemID := r.PathValue("id")
+	if itemID == "" {
+		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Item ID is required"))
+		return
+	}
+
+	if err := h.itemService.DeleteItem(itemID, userID.String()); err != nil {
+		utils.HandleServiceError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, utils.SuccessResponse("Item deleted successfully", nil))
+}
