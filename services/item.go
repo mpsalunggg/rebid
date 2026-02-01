@@ -131,8 +131,23 @@ func (s *ItemService) UpdateItem(itemID, userID string, req *dto.UpdateItemReque
 		}
 	}
 
+	imagesToDelete, _ := s.imageRepo.GetByItemIDExcept(itemUUID, keepUUIDs)
+
 	if err := s.imageRepo.DeleteByItemIDExcept(itemUUID, keepUUIDs); err != nil {
 		fmt.Printf("failed to delete old images: %v\n", err)
+	}
+
+	for _, img := range imagesToDelete {
+		filePath := strings.TrimPrefix(img.URL, "/")
+		if strings.HasPrefix(filePath, "http") {
+			parts := strings.Split(filePath, "/uploads/")
+			if len(parts) > 1 {
+				filePath = filepath.Join("uploads", parts[1])
+			}
+		}
+		if err := utils.DeleteFile(filePath); err != nil {
+			fmt.Printf("warning: failed to delete file %s: %v\n", filePath, err)
+		}
 	}
 
 	for _, imgData := range req.Images {
