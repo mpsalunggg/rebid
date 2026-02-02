@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	database "rebid/databases"
-	"rebid/dto"
+	"rebid/internal/dto"
+	database "rebid/internal/databases"
 	"time"
 
 	"github.com/google/uuid"

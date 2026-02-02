@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"rebid/config"
-	"rebid/handlers"
+	"rebid/internal/config"
+	"rebid/internal/handlers"
 )
 
 func SetupUserRoutes(router Router, cfg *config.Config, handler *handlers.Handler) {

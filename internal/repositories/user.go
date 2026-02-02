@@ -3,9 +3,9 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
-	database "rebid/databases"
-	"rebid/dto"
-	"rebid/models"
+	database "rebid/internal/databases"
+	"rebid/internal/dto"
+	"rebid/internal/models"
 
 	"github.com/google/uuid"
 )

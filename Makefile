@@ -1,4 +1,7 @@
-.PHONY: help build run migrate-up migrate-down migrate-create migrate-create-up migrate-create-down seed clean docker-up docker-down install-deps
+.PHONY: help build run migrate-up migrate-down migrate-create migrate-create-up migrate-create-down migrate-create-down seed clean docker-up docker-down install-deps migrate-force
+
+MIGRATION_DIR = ./internal/databases/migration
+CMD_DIR = ./cmd/app
 
 # Database connection string
 DB_URL = postgresql://rebid_user:rebid_password@localhost:5432/rebid_db?sslmode=disable
@@ -19,25 +22,25 @@ migrate-create: ## Create migration (usage: make migrate-create NAME=create_user
 		echo "❌ Error: NAME required. Example: make migrate-create NAME=create_users"; \
 		exit 1; \
 	fi
-	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest create -ext sql -dir ./databases/migration -seq $(NAME)
-	@echo "✅ Migration created: migration/*_$(NAME).sql"
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest create -ext sql -dir $(MIGRATION_DIR) -seq $(NAME)
+	@echo "✅ Migration created: $(MIGRATION_DIR)/*_$(NAME).sql"
 
 migrate-create-up: ## Create UP migration only (usage: make migrate-create-up NAME=create_users)
 	@if [ -z "$(NAME)" ]; then \
 		echo "❌ Error: NAME required. Example: make migrate-create-up NAME=create_users"; \
 		exit 1; \
 	fi
-	@LAST_SEQ=$$(ls -1 ./databases/migration/*.sql 2>/dev/null | sed 's/.*\/\([0-9]*\)_.*/\1/' | sort -n | tail -1); \
+	@LAST_SEQ=$$(ls -1 $(MIGRATION_DIR)/*.sql 2>/dev/null | sed 's/.*\/\([0-9]*\)_.*/\1/' | sort -n | tail -1); \
 	NEXT_SEQ=$$(printf "%06d" $$((10#$${LAST_SEQ:-0} + 1))); \
-	touch "./databases/migration/$${NEXT_SEQ}_$(NAME).up.sql"; \
-	echo "✅ UP Migration created: databases/migration/$${NEXT_SEQ}_$(NAME).up.sql"
+	touch "$(MIGRATION_DIR)/$${NEXT_SEQ}_$(NAME).up.sql"; \
+	echo "✅ UP Migration created: $(MIGRATION_DIR)/$${NEXT_SEQ}_$(NAME).up.sql"
 
 migrate-create-down: ## Create DOWN migration only (usage: make migrate-create-down NAME=create_users)
 	@if [ -z "$(NAME)" ]; then \
 		echo "❌ Error: NAME required. Example: make migrate-create-down NAME=create_users"; \
 		exit 1; \
 	fi
-	@UP_FILE=$$(ls -1 ./databases/migration/*_$(NAME).up.sql 2>/dev/null | head -1); \
+	@UP_FILE=$$(ls -1 $(MIGRATION_DIR)/*_$(NAME).up.sql 2>/dev/null | head -1); \
 	if [ -z "$$UP_FILE" ]; then \
 		echo "❌ Error: UP migration for '$(NAME)' not found"; \
 		exit 1; \
@@ -51,26 +54,26 @@ migrate-create-down: ## Create DOWN migration only (usage: make migrate-create-d
 	echo "✅ DOWN Migration created: $$DOWN_FILE"
 
 migrate-up: ## Run migrations
-	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path ./databases/migration -database "$(DB_URL)" up
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path $(MIGRATION_DIR) -database "$(DB_URL)" up
 
 migrate-down: ## Rollback last migration
-	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path ./databases/migration -database "$(DB_URL)" down 1
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path $(MIGRATION_DIR) -database "$(DB_URL)" down 1
 
 migrate-force: ## Force migration version (usage: make migrate-force VERSION=3)
 	@if [ -z "$(VERSION)" ]; then \
 		echo "❌ Error: VERSION required. Example: make migrate-force VERSION=3"; \
 		exit 1; \
 	fi
-	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path ./databases/migration -database "$(DB_URL)" force $(VERSION)
+	@go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path $(MIGRATION_DIR) -database "$(DB_URL)" force $(VERSION)
 
 seed: ## Run seeders
-	@go run ./cmd/app seed
+	@go run $(CMD_DIR) seed
 
 build: ## Build app
-	@go build -o bin/rebid ./cmd/app/
+	@go build -o bin/rebid $(CMD_DIR)
 
 run: ## Run app
-	@go run ./cmd/app/
+	@go run $(CMD_DIR)
 
 air: ## Run auto reload
 	@air

@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"rebid/config"
-	database "rebid/databases"
-	"rebid/databases/seeders"
+	"rebid/internal/config"
+	database "rebid/internal/databases"
+	"rebid/internal/databases/seeders"
 )
 
 func RunSeed() {

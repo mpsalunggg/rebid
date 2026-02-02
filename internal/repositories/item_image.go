@@ -3,9 +3,10 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
-	database "rebid/databases"
-	"rebid/dto"
+	database "rebid/internal/databases"
+	"rebid/internal/dto"
 	"strings"
+
 	"time"
 
 	"github.com/google/uuid"

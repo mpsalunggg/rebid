@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"rebid/config"
+	"rebid/internal/config"
 
 	_ "github.com/lib/pq"
 )

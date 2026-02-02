@@ -2,11 +2,11 @@ package services
 
 import (
 	"net/http"
-	"rebid/config"
-	"rebid/dto"
-	"rebid/models"
-	"rebid/repositories"
-	"rebid/utils"
+	"rebid/internal/config"
+	"rebid/internal/dto"
+	"rebid/internal/models"
+	"rebid/internal/repositories"
+	"rebid/pkg"
 )
 
 type UserService struct {
@@ -22,23 +22,23 @@ func NewUserService(cfg *config.Config) *UserService {
 }
 
 func (s *UserService) RegisterUser(user *dto.CreateUserRequest) (*dto.UserResponse, error) {
-	hashedPassword, err := utils.HashPassword(user.Password)
+	hashedPassword, err := pkg.HashPassword(user.Password)
 	if err != nil {
-		return nil, utils.NewError("failed to hash password", http.StatusInternalServerError)
+		return nil, pkg.NewError("failed to hash password", http.StatusInternalServerError)
 	}
 
 	existingUser, err := s.repo.GetByEmail(user.Email)
 	if err != nil {
-		return nil, utils.NewError("failed to check email", http.StatusInternalServerError)
+		return nil, pkg.NewError("failed to check email", http.StatusInternalServerError)
 	}
 	if existingUser != nil {
-		return nil, utils.NewError("email already exists", http.StatusBadRequest)
+		return nil, pkg.NewError("email already exists", http.StatusBadRequest)
 	}
 
 	user.Password = hashedPassword
 	result, err := s.repo.Create(user)
 	if err != nil {
-		return nil, utils.NewError("failed to create user", http.StatusInternalServerError)
+		return nil, pkg.NewError("failed to create user", http.StatusInternalServerError)
 	}
 
 	return result, nil
@@ -47,17 +47,17 @@ func (s *UserService) RegisterUser(user *dto.CreateUserRequest) (*dto.UserRespon
 func (s *UserService) LoginUser(user *dto.LoginRequest) (*dto.LoginResponse, error) {
 	existingUser, err := s.repo.GetByEmail(user.Email)
 	if err != nil {
-		return nil, utils.NewError("failed to get user by email", http.StatusInternalServerError)
+		return nil, pkg.NewError("failed to get user by email", http.StatusInternalServerError)
 	}
 	if existingUser == nil {
-		return nil, utils.NewError("user not found", http.StatusNotFound)
+		return nil, pkg.NewError("user not found", http.StatusNotFound)
 	}
 
-	if !utils.ComparePassword(existingUser.Password, user.Password) {
-		return nil, utils.NewError("invalid password", http.StatusUnauthorized)
+	if !pkg.ComparePassword(existingUser.Password, user.Password) {
+		return nil, pkg.NewError("invalid password", http.StatusUnauthorized)
 	}
 
-	token, err := utils.GenerateToken(
+	token, err := pkg.GenerateToken(
 		existingUser.ID,
 		string(existingUser.Role),
 		s.config.JWTSecret,
@@ -65,7 +65,7 @@ func (s *UserService) LoginUser(user *dto.LoginRequest) (*dto.LoginResponse, err
 	)
 
 	if err != nil {
-		return nil, utils.NewError("failed to generate token", http.StatusInternalServerError)
+		return nil, pkg.NewError("failed to generate token", http.StatusInternalServerError)
 	}
 
 	response := &dto.LoginResponse{

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	database "rebid/databases"
-	"rebid/models"
-	"rebid/utils"
+	database "rebid/internal/databases"
+	"rebid/internal/models"
+	"rebid/pkg"
 
 	"github.com/google/uuid"
 )
@@ -27,7 +27,7 @@ func seedUsers() ([]models.User, error) {
 	}
 
 	for _, u := range userData {
-		hashedPassword, err := utils.HashPassword(u.password)
+		hashedPassword, err := pkg.HashPassword(u.password)
 		if err != nil {
 			return nil, fmt.Errorf("failed to hash password: %w", err)
 		}

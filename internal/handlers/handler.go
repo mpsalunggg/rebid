@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"rebid/config"
-	"rebid/services"
+	"rebid/internal/config"
+	"rebid/internal/services"
 )
 
 type Handler struct {

@@ -2,9 +2,9 @@ package routes
 
 import (
 	"net/http"
-	"rebid/config"
-	"rebid/handlers"
-	"rebid/middleware"
+	"rebid/internal/config"
+	"rebid/internal/handlers"
+	"rebid/internal/middleware"
 )
 
 type Router interface {

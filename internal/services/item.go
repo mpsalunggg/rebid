@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
-	"rebid/config"
-	"rebid/dto"
-	"rebid/repositories"
-	"rebid/utils"
+	"rebid/internal/config"
+	"rebid/internal/dto"
+	"rebid/internal/repositories"
+	"rebid/pkg"
 	"strings"
 
 	"github.com/google/uuid"
@@ -30,18 +30,18 @@ func NewItemService(cfg *config.Config) *ItemService {
 func (s *ItemService) CreateItem(item *dto.CreateItemRequest, userID string) (*dto.ItemResponse, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, utils.NewError("invalid user ID format", http.StatusBadRequest)
+		return nil, pkg.NewError("invalid user ID format", http.StatusBadRequest)
 	}
 
 	result, err := s.repo.Create(item, userUUID)
 	if err != nil {
-		return nil, utils.NewError(err.Error(), http.StatusInternalServerError)
+		return nil, pkg.NewError(err.Error(), http.StatusInternalServerError)
 	}
 
 	if len(item.Images) > 0 {
 		itemID, err := uuid.Parse(result.ID)
 		if err != nil {
-			return nil, utils.NewError("failed to parse item ID", http.StatusInternalServerError)
+			return nil, pkg.NewError("failed to parse item ID", http.StatusInternalServerError)
 		}
 
 		var createdImages []dto.ItemImageResponse
@@ -57,7 +57,7 @@ func (s *ItemService) CreateItem(item *dto.CreateItemRequest, userID string) (*d
 
 			createdImage, err := s.imageRepo.Create(createImageReq)
 			if err != nil {
-				return nil, utils.NewError("failed to create item image: "+err.Error(), http.StatusInternalServerError)
+				return nil, pkg.NewError("failed to create item image: "+err.Error(), http.StatusInternalServerError)
 			}
 
 			baseURL := strings.TrimSuffix(s.config.BaseURL, "/")
@@ -77,15 +77,15 @@ func (s *ItemService) CreateItem(item *dto.CreateItemRequest, userID string) (*d
 func (s *ItemService) GetItemByID(itemID string) (*dto.ItemResponse, error) {
 	itemUUID, err := uuid.Parse(itemID)
 	if err != nil {
-		return nil, utils.NewError("invalid item ID format", http.StatusBadRequest)
+		return nil, pkg.NewError("invalid item ID format", http.StatusBadRequest)
 	}
 
 	result, err := s.repo.GetByID(itemUUID)
 	if err != nil {
 		if err.Error() == "item not found" {
-			return nil, utils.NewError("item not found", http.StatusNotFound)
+			return nil, pkg.NewError("item not found", http.StatusNotFound)
 		}
-		return nil, utils.NewError(err.Error(), http.StatusInternalServerError)
+		return nil, pkg.NewError(err.Error(), http.StatusInternalServerError)
 	}
 
 	baseURL := strings.TrimSuffix(s.config.BaseURL, "/")
@@ -100,28 +100,28 @@ func (s *ItemService) GetItemByID(itemID string) (*dto.ItemResponse, error) {
 func (s *ItemService) UpdateItem(itemID, userID string, req *dto.UpdateItemRequest) (*dto.ItemResponse, error) {
 	itemUUID, err := uuid.Parse(itemID)
 	if err != nil {
-		return nil, utils.NewError("invalid item ID format", http.StatusBadRequest)
+		return nil, pkg.NewError("invalid item ID format", http.StatusBadRequest)
 	}
 
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, utils.NewError("invalid user ID format", http.StatusBadRequest)
+		return nil, pkg.NewError("invalid user ID format", http.StatusBadRequest)
 	}
 
 	isOwner, err := s.repo.IsOwner(itemUUID, userUUID)
 	if err != nil {
-		return nil, utils.NewError("failed to verify ownership", http.StatusInternalServerError)
+		return nil, pkg.NewError("failed to verify ownership", http.StatusInternalServerError)
 	}
 	if !isOwner {
-		return nil, utils.NewError("forbidden: you don't own this item", http.StatusForbidden)
+		return nil, pkg.NewError("forbidden: you don't own this item", http.StatusForbidden)
 	}
 
 	result, err := s.repo.Update(itemUUID, req)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			return nil, utils.NewError("item not found", http.StatusNotFound)
+			return nil, pkg.NewError("item not found", http.StatusNotFound)
 		}
-		return nil, utils.NewError(err.Error(), http.StatusInternalServerError)
+		return nil, pkg.NewError(err.Error(), http.StatusInternalServerError)
 	}
 
 	var keepUUIDs []uuid.UUID
@@ -145,7 +145,7 @@ func (s *ItemService) UpdateItem(itemID, userID string, req *dto.UpdateItemReque
 				filePath = filepath.Join("uploads", parts[1])
 			}
 		}
-		if err := utils.DeleteFile(filePath); err != nil {
+		if err := pkg.DeleteFile(filePath); err != nil {
 			fmt.Printf("warning: failed to delete file %s: %v\n", filePath, err)
 		}
 	}
@@ -177,20 +177,20 @@ func (s *ItemService) UpdateItem(itemID, userID string, req *dto.UpdateItemReque
 func (s *ItemService) DeleteItem(itemID, userID string) error {
 	itemUUID, err := uuid.Parse(itemID)
 	if err != nil {
-		return utils.NewError("invalid item ID format", http.StatusBadRequest)
+		return pkg.NewError("invalid item ID format", http.StatusBadRequest)
 	}
 
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return utils.NewError("invalid user ID format", http.StatusBadRequest)
+		return pkg.NewError("invalid user ID format", http.StatusBadRequest)
 	}
 
 	isOwner, err := s.repo.IsOwner(itemUUID, userUUID)
 	if err != nil {
-		return utils.NewError("failed to verify ownership", http.StatusInternalServerError)
+		return pkg.NewError("failed to verify ownership", http.StatusInternalServerError)
 	}
 	if !isOwner {
-		return utils.NewError("forbidden: you don't own this item", http.StatusForbidden)
+		return pkg.NewError("forbidden: you don't own this item", http.StatusForbidden)
 	}
 
 	images, err := s.imageRepo.GetByItemID(itemUUID)
@@ -200,9 +200,9 @@ func (s *ItemService) DeleteItem(itemID, userID string) error {
 
 	if err := s.repo.Delete(itemUUID); err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			return utils.NewError("item not found", http.StatusNotFound)
+			return pkg.NewError("item not found", http.StatusNotFound)
 		}
-		return utils.NewError(err.Error(), http.StatusInternalServerError)
+		return pkg.NewError(err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, img := range images {
@@ -215,7 +215,7 @@ func (s *ItemService) DeleteItem(itemID, userID string) error {
 			}
 		}
 
-		if err := utils.DeleteFile(filePath); err != nil {
+		if err := pkg.DeleteFile(filePath); err != nil {
 			fmt.Printf("warning: failed to delete file %s: %v\n", filePath, err)
 		}
 	}

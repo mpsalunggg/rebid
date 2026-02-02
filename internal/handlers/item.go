@@ -3,27 +3,27 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"rebid/dto"
-	"rebid/middleware"
-	"rebid/utils"
+	"rebid/internal/dto"
+	"rebid/internal/middleware"
+	"rebid/pkg"
 	"strconv"
 )
 
 func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
+		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
 		return
 	}
 
 	userID, err := middleware.GetUserByID(r)
 	if err != nil {
-		utils.JSONResponse(w, http.StatusUnauthorized, utils.ErrorResponse("User not authenticated"))
+		pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("User not authenticated"))
 		return
 	}
 
 	err = r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Failed to parse form data"))
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("Failed to parse form data"))
 		return
 	}
 
@@ -36,7 +36,7 @@ func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 		var err error
 		startingPrice, err = strconv.ParseFloat(startingPriceStr, 64)
 		if err != nil {
-			utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Invalid starting_price format"))
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("Invalid starting_price format"))
 			return
 		}
 	}
@@ -48,12 +48,12 @@ func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := request.Validate(); err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse(err.Error()))
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse(err.Error()))
 		return
 	}
-	uploadedFiles, err := utils.SaveMultipleUploadedFiles(r, "images", h.cfg.UploadDir)
+	uploadedFiles, err := pkg.SaveMultipleUploadedFiles(r, "images", h.cfg.UploadDir)
 	if err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse(fmt.Sprintf("Failed to upload images: %v", err)))
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse(fmt.Sprintf("Failed to upload images: %v", err)))
 		return
 	}
 	var images []dto.CreateItemImageData
@@ -70,59 +70,59 @@ func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 
 	item, err := h.itemService.CreateItem(request, userID.String())
 	if err != nil {
-		utils.HandleServiceError(w, err)
+		pkg.HandleServiceError(w, err)
 		return
 	}
 
-	utils.JSONResponse(
+	pkg.JSONResponse(
 		w,
 		http.StatusCreated,
-		utils.SuccessResponse("Item created successfully", item),
+		pkg.SuccessResponse("Item created successfully", item),
 	)
 }
 
 func (h *Handler) GetItemByID(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
+		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
 		return
 	}
 
 	id := r.PathValue("id")
 
 	if id == "" {
-		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("ID is required"))
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("ID is required"))
 		return
 	}
 
 	item, err := h.itemService.GetItemByID(id)
 	if err != nil {
-		utils.HandleServiceError(w, err)
+		pkg.HandleServiceError(w, err)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, utils.SuccessResponse("Item retrieved successfully", item))
+	pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Item retrieved successfully", item))
 }
 
 func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut && r.Method != http.MethodPatch {
-		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
+		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
 		return
 	}
 
 	userID, err := middleware.GetUserByID(r)
 	if err != nil {
-		utils.JSONResponse(w, http.StatusUnauthorized, utils.ErrorResponse("User not authenticated"))
+		pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("User not authenticated"))
 		return
 	}
 
 	itemID := r.PathValue("id")
 	if itemID == "" {
-		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Item ID is required"))
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("Item ID is required"))
 		return
 	}
 
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Failed to parse form data"))
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("Failed to parse form data"))
 		return
 	}
 
@@ -141,11 +141,11 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := request.Validate(); err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse(err.Error()))
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse(err.Error()))
 		return
 	}
 
-	uploadedFiles, _ := utils.SaveMultipleUploadedFiles(r, "images", h.cfg.UploadDir)
+	uploadedFiles, _ := pkg.SaveMultipleUploadedFiles(r, "images", h.cfg.UploadDir)
 	for _, file := range uploadedFiles {
 		request.Images = append(request.Images, dto.CreateItemImageData{
 			URL:      file.Path,
@@ -157,35 +157,35 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	item, err := h.itemService.UpdateItem(itemID, userID.String(), request)
 	if err != nil {
-		utils.HandleServiceError(w, err)
+		pkg.HandleServiceError(w, err)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, utils.SuccessResponse("Item updated successfully", item))
+	pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Item updated successfully", item))
 }
 
 func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
-		utils.JSONResponse(w, http.StatusMethodNotAllowed, utils.ErrorResponse("Method not allowed"))
+		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
 		return
 	}
 
 	userID, err := middleware.GetUserByID(r)
 	if err != nil {
-		utils.JSONResponse(w, http.StatusUnauthorized, utils.ErrorResponse("User not authenticated"))
+		pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("User not authenticated"))
 		return
 	}
 
 	itemID := r.PathValue("id")
 	if itemID == "" {
-		utils.JSONResponse(w, http.StatusBadRequest, utils.ErrorResponse("Item ID is required"))
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("Item ID is required"))
 		return
 	}
 
 	if err := h.itemService.DeleteItem(itemID, userID.String()); err != nil {
-		utils.HandleServiceError(w, err)
+		pkg.HandleServiceError(w, err)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, utils.SuccessResponse("Item deleted successfully", nil))
+	pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Item deleted successfully", nil))
 }
