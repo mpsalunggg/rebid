@@ -17,6 +17,7 @@ const (
 
 type Auction struct {
 	ID              uuid.UUID     `json:"id" db:"id"`
+	CreatedBy       uuid.UUID     `json:"created_by" db:"created_by"`
 	ItemID          uuid.UUID     `json:"item_id" db:"item_id"`
 	StartingPrice   float64       `json:"starting_price" db:"starting_price"`
 	CurrentPrice    float64       `json:"current_price" db:"current_price"`

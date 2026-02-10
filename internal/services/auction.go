@@ -1,9 +1,13 @@
 package services
 
 import (
+	"net/http"
 	"rebid/internal/config"
 	"rebid/internal/dto"
 	"rebid/internal/repositories"
+	"rebid/pkg"
+
+	"github.com/google/uuid"
 )
 
 type AuctionService struct {
@@ -18,6 +22,11 @@ func NewAuctionService(cfg *config.Config) *AuctionService {
 	}
 }
 
-func (s *AuctionService) CreateAuction(auction *dto.CreateAuctionRequest) (*dto.ResponseAuction, error) {
-	return s.repo.Create(auction)
+func (s *AuctionService) CreateAuction(auction *dto.CreateAuctionRequest, userID string) (*dto.ResponseAuction, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, pkg.NewError("invalid user ID format", http.StatusBadRequest)
+	}
+
+	return s.repo.Create(auction, userUUID)
 }
