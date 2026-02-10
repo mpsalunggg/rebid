@@ -1,0 +1,1 @@
+ALTER TABLE auctions ADD COLUMN created_by UUID NOT NULL REFERENCES users(id);
