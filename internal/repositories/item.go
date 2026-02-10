@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"rebid/internal/dto"
 	database "rebid/internal/databases"
+	"rebid/internal/dto"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,7 +51,6 @@ func (r *ItemRepository) Create(item *dto.CreateItemRequest, userID uuid.UUID) (
 	)
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, fmt.Errorf("failed to create item: %w", err)
 	}
 
