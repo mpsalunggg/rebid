@@ -23,9 +23,9 @@ func NewItemRepository() *ItemRepository {
 
 func (r *ItemRepository) Create(item *dto.CreateItemRequest, userID uuid.UUID) (*dto.ItemResponse, error) {
 	query := `
-		INSERT INTO items (id, user_id, name, description, starting_price, created_at, updated_at)
-		VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW(), NOW())
-		RETURNING id, user_id, name, description, starting_price, created_at, updated_at
+		INSERT INTO items (id, user_id, name, description, created_at, updated_at)
+		VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW())
+		RETURNING id, user_id, name, description, created_at, updated_at
 	`
 
 	var response dto.ItemResponse
@@ -39,13 +39,11 @@ func (r *ItemRepository) Create(item *dto.CreateItemRequest, userID uuid.UUID) (
 		userID,
 		item.Name,
 		item.Description,
-		item.StartingPrice,
 	).Scan(
 		&response.ID,
 		&response.UserID,
 		&response.Name,
 		&response.Description,
-		&response.StartingPrice,
 		&createdAt,
 		&updatedAt,
 	)
@@ -61,7 +59,7 @@ func (r *ItemRepository) Create(item *dto.CreateItemRequest, userID uuid.UUID) (
 
 func (r *ItemRepository) GetByID(itemID uuid.UUID) (*dto.ItemResponse, error) {
 	query := `
-		SELECT id, user_id, name, description, starting_price, created_at, updated_at
+		SELECT id, user_id, name, description, created_at, updated_at
 		FROM items
 		WHERE id = $1
 	`
@@ -77,7 +75,6 @@ func (r *ItemRepository) GetByID(itemID uuid.UUID) (*dto.ItemResponse, error) {
 		&response.UserID,
 		&response.Name,
 		&response.Description,
-		&response.StartingPrice,
 		&createdAt,
 		&updatedAt,
 	)
@@ -112,21 +109,19 @@ func (r *ItemRepository) Update(itemId uuid.UUID, req *dto.UpdateItemRequest) (*
 		UPDATE items
 		SET name = COALESCE(NULLIF($2, ''), name),
 			description = COALESCE(NULLIF($3, ''), description),
-			starting_price = CASE WHEN $4 > 0 THEN $4 ELSE starting_price END,
 			updated_at = NOW()
 		WHERE id = $1
-		RETURNING id, user_id, name, description, starting_price, created_at, updated_at
+		RETURNING id, user_id, name, description, created_at, updated_at
 	`
 
 	var response dto.ItemResponse
 	var createdAt, updatedAt time.Time
 
-	err := r.db.QueryRow(query, itemId, req.Name, req.Description, req.StartingPrice).Scan(
+	err := r.db.QueryRow(query, itemId, req.Name, req.Description).Scan(
 		&response.ID,
 		&response.UserID,
 		&response.Name,
 		&response.Description,
-		&response.StartingPrice,
 		&createdAt,
 		&updatedAt,
 	)

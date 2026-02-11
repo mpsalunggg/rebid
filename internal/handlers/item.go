@@ -29,22 +29,10 @@ func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 	description := r.FormValue("description")
-	startingPriceStr := r.FormValue("starting_price")
-
-	var startingPrice float64
-	if startingPriceStr != "" {
-		var err error
-		startingPrice, err = strconv.ParseFloat(startingPriceStr, 64)
-		if err != nil {
-			pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("Invalid starting_price format"))
-			return
-		}
-	}
 
 	request := &dto.CreateItemRequest{
 		Name:          name,
 		Description:   description,
-		StartingPrice: startingPrice,
 	}
 
 	if err := request.Validate(); err != nil {
