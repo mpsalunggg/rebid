@@ -3,12 +3,14 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	database "rebid/internal/databases"
 	"rebid/internal/dto"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type AuctionRepository struct {
@@ -49,6 +51,12 @@ func (r *AuctionRepository) Create(ctx context.Context, auction *dto.CreateAucti
 	)
 
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			if pqErr.Constraint == "unique_item_auction" {
+				return nil, fmt.Errorf("auction for this item already exists")
+			}
+		}
 		return nil, fmt.Errorf("failed to create auction: %w", err)
 	}
 
