@@ -20,6 +20,8 @@ func (h *Handler) AuctionHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) AuctionByIDHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case http.MethodGet:
+		h.GetAuctionByID(w, r)
 	case http.MethodPut:
 		h.UpdateAuction(w, r)
 	default:
@@ -82,4 +84,21 @@ func (h *Handler) UpdateAuction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Auction updated successfully", auction))
+}
+
+func (h *Handler) GetAuctionByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	auctionID := r.PathValue("id")
+	if auctionID == "" {
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("Auction ID is required"))
+		return
+	}
+
+	auction, err := h.auctionService.GetAuctionByID(ctx, auctionID)
+	if err != nil {
+		pkg.HandleServiceError(w, err)
+		return
+	}
+
+	pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Auction retrieved successfully", auction))
 }

@@ -105,3 +105,42 @@ func (r *AuctionRepository) Update(ctx context.Context, auction *dto.UpdateAucti
 	response.UpdatedAt = updatedAt.Format(time.RFC3339)
 	return &response, nil
 }
+
+func (r *AuctionRepository) GetByID(ctx context.Context, auctionID uuid.UUID) (*dto.ResponseAuction, error) {
+	query := `
+		SELECT id, item_id, created_by, starting_price, current_price, start_time, end_time, current_bidder_id, status, created_at, updated_at
+		FROM auctions
+		WHERE id = $1
+	`
+
+	var response dto.ResponseAuction
+	var (
+		createdAt time.Time
+		updatedAt time.Time
+	)
+
+	err := r.db.QueryRowContext(ctx, query, auctionID).Scan(
+		&response.ID,
+		&response.ItemID,
+		&response.CreatedBy,
+		&response.StartingPrice,
+		&response.CurrentPrice,
+		&response.StartTime,
+		&response.EndTime,
+		&response.CurrentBidderID,
+		&response.Status,
+		&createdAt,
+		&updatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("auction not found")
+		}
+		return nil, fmt.Errorf("failed to get auction by ID, %w", err)
+	}
+
+	response.CreatedAt = createdAt.Format(time.RFC3339)
+	response.UpdatedAt = updatedAt.Format(time.RFC3339)
+	return &response, nil
+}

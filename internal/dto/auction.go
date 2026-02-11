@@ -33,7 +33,7 @@ type ResponseAuction struct {
 	CurrentPrice    float64    `json:"current_price"`
 	StartTime       time.Time  `json:"start_time"`
 	EndTime         time.Time  `json:"end_time"`
-	CurrentBidderID *uuid.UUID `json:"current_bidder_id,omitempty" db:"current_bidder_id"`
+	CurrentBidderID *uuid.UUID `json:"current_bidder_id" db:"current_bidder_id"`
 	Status          string     `json:"status"`
 	CreatedAt       string     `json:"created_at"`
 	UpdatedAt       string     `json:"updated_at"`
