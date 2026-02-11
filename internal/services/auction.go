@@ -31,3 +31,12 @@ func (s *AuctionService) CreateAuction(ctx context.Context, auction *dto.CreateA
 
 	return s.repo.Create(ctx, auction, userUUID)
 }
+
+func (s *AuctionService) UpdateAuction(ctx context.Context, auction *dto.UpdateAuctionRequest, auctionID string) (*dto.ResponseAuction, error) {
+	auctionUUID, err := uuid.Parse(auctionID)
+	if err != nil {
+		return nil, pkg.NewError("invalid auction ID format", http.StatusBadRequest)
+	}
+
+	return s.repo.Update(ctx, auction, auctionUUID)
+}
