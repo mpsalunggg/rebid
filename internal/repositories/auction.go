@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	database "rebid/internal/databases"
@@ -20,7 +21,7 @@ func NewAuctionRepository() *AuctionRepository {
 	}
 }
 
-func (r *AuctionRepository) Create(auction *dto.CreateAuctionRequest, userID uuid.UUID) (*dto.ResponseAuction, error) {
+func (r *AuctionRepository) Create(ctx context.Context, auction *dto.CreateAuctionRequest, userID uuid.UUID) (*dto.ResponseAuction, error) {
 	query := `
     INSERT INTO auctions (id, item_id, created_by, starting_price, current_price, start_time, end_time, status, created_at, updated_at)
     VALUES (gen_random_uuid(), $1, $2, $3, $3, $4, $5, $6, NOW(), NOW())
@@ -33,7 +34,7 @@ func (r *AuctionRepository) Create(auction *dto.CreateAuctionRequest, userID uui
 		updatedAt time.Time
 	)
 
-	err := r.db.QueryRow(query, auction.ItemID, userID, auction.StartingPrice, auction.StartTime, auction.EndTime, auction.Status).Scan(
+	err := r.db.QueryRowContext(ctx, query, auction.ItemID, userID, auction.StartingPrice, auction.StartTime, auction.EndTime, auction.Status).Scan(
 		&response.ID,
 		&response.ItemID,
 		&response.CreatedBy,

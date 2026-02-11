@@ -9,6 +9,7 @@ import (
 )
 
 func (h *Handler) CreateAuction(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	if r.Method != http.MethodPost {
 		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
 		return
@@ -31,7 +32,7 @@ func (h *Handler) CreateAuction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auction, err := h.auctionService.CreateAuction(request, userID.String())
+	auction, err := h.auctionService.CreateAuction(ctx, request, userID.String())
 	if err != nil {
 		pkg.HandleServiceError(w, err)
 		return
