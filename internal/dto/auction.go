@@ -39,6 +39,14 @@ type ResponseAuction struct {
 	UpdatedAt       string     `json:"updated_at"`
 }
 
+type FilterAuction struct {
+	Limit         int       `json:"limit"`
+	Status        *string    `json:"status"`
+	StartTime     *time.Time `json:"start_time"`
+	EndTime       *time.Time `json:"end_time"`
+	StartingPrice *float64   `json:"starting_price"`
+}
+
 func IsValidAuctionStatus(status string) bool {
 	switch status {
 	case string(models.AuctionScheduled),

@@ -23,6 +23,10 @@ func NewAuctionService(cfg *config.Config) *AuctionService {
 	}
 }
 
+func (s *AuctionService) GetAllAuctions(ctx context.Context, filter *dto.FilterAuction) ([]dto.ResponseAuction, error) {
+	return s.repo.GetAll(ctx, filter)
+}
+
 func (s *AuctionService) CreateAuction(ctx context.Context, auction *dto.CreateAuctionRequest, userID string) (*dto.ResponseAuction, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
@@ -48,4 +52,13 @@ func (s *AuctionService) GetAuctionByID(ctx context.Context, auctionID string) (
 	}
 
 	return s.repo.GetByID(ctx, auctionUUID)
+}
+
+func (s *AuctionService) DeleteAuction(ctx context.Context, auctionID string) error {
+	auctionUUID, err := uuid.Parse(auctionID)
+	if err != nil {
+		return pkg.NewError("invalid auction ID format", http.StatusBadRequest)
+	}
+
+	return s.repo.Delete(ctx, auctionUUID)
 }

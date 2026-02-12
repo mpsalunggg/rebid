@@ -22,6 +22,84 @@ func NewAuctionRepository() *AuctionRepository {
 		db: database.GetDB(),
 	}
 }
+func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuction) ([]dto.ResponseAuction, error) {
+
+	query := `
+		SELECT id, item_id, created_by, starting_price, current_price,
+		       start_time, end_time, current_bidder_id,
+		       status, created_at, updated_at
+		FROM auctions
+		WHERE 1=1
+	`
+
+	var args []interface{}
+	argPos := 1
+
+	if filter.Status != nil {
+		query += fmt.Sprintf(" AND status = $%d", argPos)
+		args = append(args, *filter.Status)
+		argPos++
+	}
+
+	if filter.StartTime != nil {
+		query += fmt.Sprintf(" AND start_time >= $%d", argPos)
+		args = append(args, *filter.StartTime)
+		argPos++
+	}
+
+	if filter.EndTime != nil {
+		query += fmt.Sprintf(" AND end_time <= $%d", argPos)
+		args = append(args, *filter.EndTime)
+		argPos++
+	}
+
+	if filter.StartingPrice != nil {
+		query += fmt.Sprintf(" AND starting_price >= $%d", argPos)
+		args = append(args, *filter.StartingPrice)
+		argPos++
+	}
+
+	query += " ORDER BY start_time DESC"
+
+	if filter.Limit > 0 {
+		query += fmt.Sprintf(" LIMIT %d", filter.Limit)
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var responses []dto.ResponseAuction
+
+	for rows.Next() {
+
+		var res dto.ResponseAuction
+
+		err := rows.Scan(
+			&res.ID,
+			&res.ItemID,
+			&res.CreatedBy,
+			&res.StartingPrice,
+			&res.CurrentPrice,
+			&res.StartTime,
+			&res.EndTime,
+			&res.CurrentBidderID,
+			&res.Status,
+			&res.CreatedAt,
+			&res.UpdatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		responses = append(responses, res)
+	}
+
+	return responses, nil
+}
 
 func (r *AuctionRepository) Create(ctx context.Context, auction *dto.CreateAuctionRequest, userID uuid.UUID) (*dto.ResponseAuction, error) {
 	query := `
@@ -143,4 +221,19 @@ func (r *AuctionRepository) GetByID(ctx context.Context, auctionID uuid.UUID) (*
 	response.CreatedAt = createdAt.Format(time.RFC3339)
 	response.UpdatedAt = updatedAt.Format(time.RFC3339)
 	return &response, nil
+}
+
+func (r *AuctionRepository) Delete(ctx context.Context, auctionID uuid.UUID) error {
+	query := `
+		DELETE FROM auctions WHERE id = $1
+	`
+
+	_, err := r.db.ExecContext(ctx, query, auctionID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("auction not found")
+		}
+		return fmt.Errorf("failed to delete auction: %w", err)
+	}
+	return nil
 }
