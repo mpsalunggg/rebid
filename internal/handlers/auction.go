@@ -115,7 +115,7 @@ func (h *Handler) CreateAuction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auction, err := h.auctionService.CreateAuction(ctx, request, userID.String())
+	auction, err := h.auctionService.CreateAuction(ctx, request, userID)
 	if err != nil {
 		pkg.HandleServiceError(w, err)
 		return

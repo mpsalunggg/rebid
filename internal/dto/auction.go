@@ -11,7 +11,6 @@ import (
 
 type CreateAuctionRequest struct {
 	ItemID        uuid.UUID `json:"item_id"`
-	CreatedBy     uuid.UUID `json:"created_by"`
 	StartingPrice float64   `json:"starting_price"`
 	StartTime     time.Time `json:"start_time"`
 	EndTime       time.Time `json:"end_time"`

@@ -27,13 +27,8 @@ func (s *AuctionService) GetAllAuctions(ctx context.Context, filter *dto.FilterA
 	return s.repo.GetAll(ctx, filter)
 }
 
-func (s *AuctionService) CreateAuction(ctx context.Context, auction *dto.CreateAuctionRequest, userID string) (*dto.ResponseAuction, error) {
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, pkg.NewError("invalid user ID format", http.StatusBadRequest)
-	}
-
-	return s.repo.Create(ctx, auction, userUUID)
+func (s *AuctionService) CreateAuction(ctx context.Context, auction *dto.CreateAuctionRequest, userID uuid.UUID) (*dto.ResponseAuction, error) {
+	return s.repo.Create(ctx, auction, userID)
 }
 
 func (s *AuctionService) UpdateAuction(ctx context.Context, auction *dto.UpdateAuctionRequest, auctionID string) (*dto.ResponseAuction, error) {
