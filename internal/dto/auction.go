@@ -38,8 +38,12 @@ type ResponseAuction struct {
 	UpdatedAt       string     `json:"updated_at"`
 }
 
+type ResponseCurrentPrice struct {
+	Amount float64 `json:"amount"`
+}
+
 type FilterAuction struct {
-	Limit         int       `json:"limit"`
+	Limit         int        `json:"limit"`
 	Status        *string    `json:"status"`
 	StartTime     *time.Time `json:"start_time"`
 	EndTime       *time.Time `json:"end_time"`

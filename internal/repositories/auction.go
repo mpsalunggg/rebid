@@ -23,7 +23,6 @@ func NewAuctionRepository() *AuctionRepository {
 	}
 }
 func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuction) ([]dto.ResponseAuction, error) {
-
 	query := `
 		SELECT id, item_id, created_by, starting_price, current_price,
 		       start_time, end_time, current_bidder_id,
@@ -236,4 +235,26 @@ func (r *AuctionRepository) Delete(ctx context.Context, auctionID uuid.UUID) err
 		return fmt.Errorf("failed to delete auction: %w", err)
 	}
 	return nil
+}
+
+func (r *AuctionRepository) GetCurrentPrice(ctx context.Context, auctionID uuid.UUID) (*dto.ResponseCurrentPrice, error) {
+	query := `
+		SELECT current_price
+		FROM auctions
+		WHERE id = $1
+	`
+
+	var response dto.ResponseCurrentPrice
+
+	err := r.db.QueryRowContext(ctx, query, auctionID).Scan(
+		&response.Amount,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("auction not found")
+		}
+		return nil, fmt.Errorf("failed to get current price: %w", err)
+	}
+	return &response, nil
 }

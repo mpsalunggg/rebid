@@ -58,5 +58,6 @@ func SetupRoutes(cfg *config.Config) Router {
 	SetupUserRoutes(router, cfg, handler)
 	SetupItemRoutes(router, cfg, handler)
 	SetupAuctionRoutes(router, cfg, handler)
+	SetupBidRoutes(router, cfg, handler)
 	return router
 }

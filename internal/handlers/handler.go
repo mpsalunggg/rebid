@@ -10,6 +10,7 @@ type Handler struct {
 	userService    *services.UserService
 	itemService    *services.ItemService
 	auctionService *services.AuctionService
+	bidService     *services.BidService
 }
 
 func NewHandler(cfg *config.Config) *Handler {
@@ -18,5 +19,6 @@ func NewHandler(cfg *config.Config) *Handler {
 		userService:    services.NewUserService(cfg),
 		itemService:    services.NewItemService(cfg),
 		auctionService: services.NewAuctionService(cfg),
+		bidService:     services.NewBidService(cfg),
 	}
 }
