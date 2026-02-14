@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"rebid/internal/dto"
 	"rebid/internal/middleware"
+	"rebid/internal/websocket"
 	"rebid/pkg"
 )
 
@@ -41,6 +42,33 @@ func (h *Handler) CreateBid(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		pkg.HandleServiceError(w, err)
 		return
+	}
+
+	var auctionID string = bid.AuctionID.String()
+	auction, err := h.auctionService.GetAuctionByID(ctx, auctionID)
+	if err != nil {
+		pkg.JSONResponse(w, http.StatusInternalServerError, pkg.ErrorResponse("Failed to get auction"))
+		return
+	}
+
+	if h.wsHub != nil {
+		newBidPayload := websocket.NewBidPayload{
+			Event: "new_bid",
+			Bid:   *bid,
+		}
+
+		b, _ := json.Marshal(newBidPayload)
+		h.wsHub.BroadcastToAuction(bid.AuctionID, b)
+
+		subPayload := websocket.SubscribedPayload{
+			Event:           "subscribed",
+			Auction:         *auction,
+			CurrentPrice:    auction.CurrentPrice,
+			CurrentBidderID: auction.CurrentBidderID,
+		}
+
+		b2, _ := json.Marshal(subPayload)
+		h.wsHub.BroadcastToAuction(bid.AuctionID, b2)
 	}
 
 	pkg.JSONResponse(w, http.StatusCreated, pkg.SuccessResponse("Bid created successfully", bid))

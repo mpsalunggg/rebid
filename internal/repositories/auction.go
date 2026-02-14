@@ -258,3 +258,9 @@ func (r *AuctionRepository) GetCurrentPrice(ctx context.Context, auctionID uuid.
 	}
 	return &response, nil
 }
+
+func (r *AuctionRepository) UpdateCurrentPriceWithBidder(ctx context.Context, tx *sql.Tx, auctionID uuid.UUID, amount float64, bidderID uuid.UUID) error {
+	q := `UPDATE auctions SET current_price = $1, current_bidder_id = $2, updated_at = NOW() WHERE id = $3`
+	_, err := tx.ExecContext(ctx, q, amount, bidderID, auctionID)
+	return err
+}

@@ -5,6 +5,7 @@ import (
 	"rebid/internal/config"
 	"rebid/internal/handlers"
 	"rebid/internal/middleware"
+	"rebid/internal/websocket"
 )
 
 type Router interface {
@@ -48,7 +49,8 @@ func apiPath(path string) string {
 
 func SetupRoutes(cfg *config.Config) Router {
 	router := NewRouter(cfg)
-	handler := handlers.NewHandler(cfg)
+	hub := websocket.NewHub()
+	handler := handlers.NewHandler(cfg, hub)
 
 	router.HandleFunc("/health", handler.HealthCheck)
 	router.HandleFunc("/uploads/", func(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +59,7 @@ func SetupRoutes(cfg *config.Config) Router {
 
 	SetupUserRoutes(router, cfg, handler)
 	SetupItemRoutes(router, cfg, handler)
-	SetupAuctionRoutes(router, cfg, handler)
+	SetupAuctionRoutes(router, cfg, handler, hub)
 	SetupBidRoutes(router, cfg, handler)
 	return router
 }

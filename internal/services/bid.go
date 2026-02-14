@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"rebid/internal/config"
+	database "rebid/internal/databases"
 	"rebid/internal/dto"
 	"rebid/internal/repositories"
 
@@ -34,5 +35,26 @@ func (s *BidService) CreateBid(ctx context.Context, bid *dto.CreateBidRequest, u
 		return nil, fmt.Errorf("bid amount must be greater than current price")
 	}
 
-	return s.repo.Create(ctx, bid, userID)
+	db := database.GetDB()
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	createdBid, err := s.repo.Create(ctx, tx, bid, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.auctionRepo.UpdateCurrentPriceWithBidder(ctx, tx, bid.AuctionID, bid.Amount, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update auction: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("failed to commit: %w", err)
+	}
+
+	return createdBid, nil
 }

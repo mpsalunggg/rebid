@@ -21,30 +21,24 @@ func NewBidRepository() *BidRepository {
 	}
 }
 
-func (r *BidRepository) Create(ctx context.Context, bid *dto.CreateBidRequest, userID uuid.UUID) (*dto.ResponseBid, error) {
+func (r *BidRepository) Create(ctx context.Context, tx *sql.Tx, bid *dto.CreateBidRequest, userID uuid.UUID) (*dto.ResponseBid, error) {
 	query := `
 		INSERT INTO bids (id, auction_id, user_id, amount, bid_time)
 		VALUES (gen_random_uuid(), $1, $2, $3, NOW())
 		RETURNING id, auction_id, user_id, amount, bid_time
 	`
-
 	var response dto.ResponseBid
-	var (
-		bidTime time.Time
-	)
-
-	err := r.db.QueryRowContext(ctx, query, bid.AuctionID, userID, bid.Amount).Scan(
+	var bidTime time.Time
+	err := tx.QueryRowContext(ctx, query, bid.AuctionID, userID, bid.Amount).Scan(
 		&response.ID,
 		&response.AuctionID,
 		&response.UserID,
 		&response.Amount,
 		&bidTime,
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to create bid: %w", err)
 	}
-
 	response.CreatedAt = bidTime.Format(time.RFC3339)
 	return &response, nil
 }
