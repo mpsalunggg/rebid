@@ -1,0 +1,109 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
+import {
+  EyeIcon,
+  EyeOffIcon,
+  LogInIcon,
+  LockIcon,
+  UserIcon,
+} from 'lucide-react'
+
+import { Particles } from '@/components/ui/particles'
+import { InputGroup } from '@/components/ui/input-group'
+import { Button } from '@/components/ui/button'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import Image from 'next/image'
+
+export default function LoginPage() {
+  const { resolvedTheme } = useTheme()
+  const [color, setColor] = useState('#ffffff')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    setColor(resolvedTheme === 'dark' ? '#ffffff' : '#56a836')
+  }, [resolvedTheme])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+    setLoading(false)
+  }
+
+  return (
+    <section className="bg-background relative flex h-screen w-full flex-col items-center justify-center overflow-hidden rounded-lg border">
+      <Particles
+        className="absolute inset-0 z-0"
+        quantity={300}
+        ease={80}
+        color={color}
+        refresh
+      />
+
+      <div className="absolute w-full max-w-md">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Image src="rebid.svg" alt="Rebid" width={40} height={40} />
+
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                Rebid App
+              </h1>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Sign in to your account
+            </p>
+          </div>
+
+          <FieldGroup className="w-full gap-5">
+            <Field>
+              <FieldLabel htmlFor="username">Username</FieldLabel>
+              <InputGroup
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                leadingIcon={<UserIcon />}
+                autoComplete="username"
+                required
+                disabled={loading}
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <InputGroup
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                leadingIcon={<LockIcon />}
+                trailingIcon={showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                onTrailingClick={() => setShowPassword((prev) => !prev)}
+                trailingAriaLabel={
+                  showPassword ? 'Hide password' : 'Show password'
+                }
+                autoComplete="current-password"
+                required
+                disabled={loading}
+              />
+            </Field>
+          </FieldGroup>
+
+          <Button type="submit" className="w-full" size="lg">
+            <LogInIcon className="size-4" />
+            Sign in
+          </Button>
+        </form>
+      </div>
+    </section>
+  )
+}
