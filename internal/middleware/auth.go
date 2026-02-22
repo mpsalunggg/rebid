@@ -21,19 +21,26 @@ const (
 func AuthMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token := ""
+
 			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
+			if authHeader != "" {
+				parts := strings.Split(authHeader, " ")
+				if len(parts) == 2 && parts[0] == "Bearer" {
+					token = parts[1]
+				}
+			}
+			if token == "" {
+				c, err := r.Cookie(cfg.CookieName)
+				if err == nil && c != nil && c.Value != "" {
+					token = c.Value
+				}
+			}
+			if token == "" {
 				pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("Unauthorized, no token provided"))
 				return
 			}
 
-			parts := strings.Split(authHeader, " ")
-			if len(parts) != 2 || parts[0] != "Bearer" {
-				pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("Unauthorized, invalid token format"))
-				return
-			}
-
-			token := parts[1]
 			claims, err := pkg.ParseToken(token, cfg.JWTSecret)
 			if err != nil {
 				pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("Unauthorized, invalid token"))

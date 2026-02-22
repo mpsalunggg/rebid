@@ -21,6 +21,12 @@ type Config struct {
 	JWTExpiry time.Duration
 	UploadDir string
 	BaseURL   string
+	// token cookie
+	CookieName       string
+	CookieSecure     bool
+	CookieSameSite   string
+	FrontendOrigin   string
+	CORSAllowOrigins bool
 }
 
 func (c *Config) DBConnectionString() string {
@@ -40,18 +46,23 @@ func Load() (*Config, error) {
 	}
 
 	config := &Config{
-		Port:      getEnv("PORT", "8080"),
-		Host:      getEnv("HOST", "localhost"),
-		DBHost:    getEnv("DB_HOST", "localhost"),
-		DBPort:    getEnv("DB_PORT", "5432"),
-		DBUser:    getEnv("DB_USER", "rebid_user"),
-		DBPass:    getEnv("DB_PASSWORD", "rebid_password"),
-		DBName:    getEnv("DB_NAME", "rebid_db"),
-		DBSSLMode: getEnv("DB_SSLMODE", "disable"),
-		JWTSecret: getEnv("JWT_SECRET", "your-secret-key-here"),
-		JWTExpiry: jwtExpiry,
-		UploadDir: getEnv("UPLOAD_DIR", "./uploads"),
-		BaseURL:   getEnv("BASE_URL", "http://localhost:8080"),
+		Port:             getEnv("PORT", "8080"),
+		Host:             getEnv("HOST", "localhost"),
+		DBHost:           getEnv("DB_HOST", "localhost"),
+		DBPort:           getEnv("DB_PORT", "5432"),
+		DBUser:           getEnv("DB_USER", "rebid_user"),
+		DBPass:           getEnv("DB_PASSWORD", "rebid_password"),
+		DBName:           getEnv("DB_NAME", "rebid_db"),
+		DBSSLMode:        getEnv("DB_SSLMODE", "disable"),
+		JWTSecret:        getEnv("JWT_SECRET", "your-secret-key-here"),
+		JWTExpiry:        jwtExpiry,
+		UploadDir:        getEnv("UPLOAD_DIR", "./uploads"),
+		BaseURL:          getEnv("BASE_URL", "http://localhost:8080"),
+		CookieName:       getEnv("COOKIE_NAME", "token"),
+		CookieSecure:     getEnv("COOKIE_SECURE", "false") == "true",
+		CookieSameSite:   getEnv("COOKIE_SAME_SITE", "lax"),
+		FrontendOrigin:   getEnv("FRONTEND_ORIGIN", "http://localhost:3000"),
+		CORSAllowOrigins: getEnv("CORS_ALLOW_CREDENTIALS", "true") == "true",
 	}
 
 	return config, nil

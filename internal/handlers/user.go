@@ -6,6 +6,7 @@ import (
 	"rebid/internal/dto"
 	"rebid/internal/middleware"
 	"rebid/pkg"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -72,6 +73,28 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		pkg.HandleServiceError(w, err)
 		return
 	}
+
+	var sameSite http.SameSite
+	switch h.cfg.CookieSameSite {
+	case "lax":
+		sameSite = http.SameSiteLaxMode
+	case "none":
+		sameSite = http.SameSiteNoneMode
+	default:
+		sameSite = http.SameSiteStrictMode
+	}
+
+	cookie := &http.Cookie{
+		Name:     h.cfg.CookieName,
+		Value:    loginResponse.Token,
+		Path:     "/",
+		MaxAge:   int(h.cfg.JWTExpiry.Seconds()),
+		Expires:  time.Now().Add(h.cfg.JWTExpiry),
+		HttpOnly: true,
+		Secure:   h.cfg.CookieSecure,
+		SameSite: sameSite,
+	}
+	http.SetCookie(w, cookie)
 
 	pkg.JSONResponse(
 		w,
