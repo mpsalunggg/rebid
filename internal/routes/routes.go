@@ -38,7 +38,8 @@ func (r *SimpleRouter) HandleFuncWithAuth(pattern string, handler func(http.Resp
 }
 
 func (r *SimpleRouter) Listen(addr string) error {
-	return http.ListenAndServe(addr, r.mux)
+	corsHandler := middleware.CORS(r.cfg)
+	return http.ListenAndServe(addr, corsHandler(r.mux))
 }
 
 const version = "/api/v1"
