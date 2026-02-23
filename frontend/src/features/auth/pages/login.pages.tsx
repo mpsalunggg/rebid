@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useTheme } from 'next-themes'
+import { useState } from 'react'
 import {
   EyeIcon,
   EyeOffIcon,
@@ -10,23 +9,18 @@ import {
   UserIcon,
 } from 'lucide-react'
 
-import { Particles } from '@/components/ui/particles'
 import { InputGroup } from '@/components/ui/input-group'
 import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import Image from 'next/image'
+import { Spinner } from '@/components/ui/spinner'
+import ParticleLayout from '@/components/layout/particle-layout'
 
 export default function LoginPage() {
-  const { resolvedTheme } = useTheme()
-  const [color, setColor] = useState('#ffffff')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    setColor(resolvedTheme === 'dark' ? '#ffffff' : '#56a836')
-  }, [resolvedTheme])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,15 +31,7 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="bg-background relative flex h-screen w-full flex-col items-center justify-center overflow-hidden rounded-lg border">
-      <Particles
-        className="absolute inset-0 z-0"
-        quantity={300}
-        ease={80}
-        color={color}
-        refresh
-      />
-
+    <ParticleLayout>
       <div className="absolute w-full max-w-md">
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
@@ -98,12 +84,12 @@ export default function LoginPage() {
             </Field>
           </FieldGroup>
 
-          <Button type="submit" className="w-full" size="lg">
-            <LogInIcon className="size-4" />
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading ? <Spinner /> : <LogInIcon className="size-4" />}
             Sign in
           </Button>
         </form>
       </div>
-    </section>
+    </ParticleLayout>
   )
 }
