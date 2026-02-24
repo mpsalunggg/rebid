@@ -6,33 +6,41 @@ import (
 )
 
 func CORS(cfg *config.Config) func(http.Handler) http.Handler {
-	origin := cfg.FrontendOrigin
-	if origin == "" {
-		origin = "http://localhost:3000"
+	allowed := cfg.FrontendOrigins
+	if len(allowed) == 0 {
+		allowed = []string{"http://localhost:3000", "http://127.0.0.1:3000"}
 	}
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			reqOrigin := r.Header.Get("Origin")
+
+			allowWildcard := false
 			allowOrigin := ""
-			if reqOrigin != "" && (reqOrigin == origin || origin == "*") {
-				if cfg.CORSAllowOrigins && origin != "*" {
+			for _, o := range allowed {
+				if o == "*" {
+					allowWildcard = true
+					break
+				}
+				if reqOrigin == o {
 					allowOrigin = reqOrigin
-				} else {
-					allowOrigin = origin
+					break
 				}
 			}
-			if allowOrigin == "" && origin == "*" {
-				allowOrigin = "*"
+
+			if allowWildcard {
+				w.Header().Set("Access-Control-Allow-Origin", "*")
+			} else if allowOrigin != "" {
+				w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 			}
 
-			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			if cfg.CORSAllowOrigins {
+			w.Header().Set("Access-Control-Max-Age", "86400")
+
+			if cfg.CORSAllowCredentials {
 				w.Header().Set("Access-Control-Allow-Credentials", "true")
 			}
-			w.Header().Set("Access-Control-Max-Age", "86400")
 
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusNoContent)

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -22,11 +23,11 @@ type Config struct {
 	UploadDir string
 	BaseURL   string
 	// token cookie
-	CookieName       string
-	CookieSecure     bool
-	CookieSameSite   string
-	FrontendOrigin   string
-	CORSAllowOrigins bool
+	CookieName           string
+	CookieSecure         bool
+	CookieSameSite       string
+	FrontendOrigins      []string
+	CORSAllowCredentials bool
 }
 
 func (c *Config) DBConnectionString() string {
@@ -46,23 +47,23 @@ func Load() (*Config, error) {
 	}
 
 	config := &Config{
-		Port:             getEnv("PORT", "8080"),
-		Host:             getEnv("HOST", "localhost"),
-		DBHost:           getEnv("DB_HOST", "localhost"),
-		DBPort:           getEnv("DB_PORT", "5432"),
-		DBUser:           getEnv("DB_USER", "rebid_user"),
-		DBPass:           getEnv("DB_PASSWORD", "rebid_password"),
-		DBName:           getEnv("DB_NAME", "rebid_db"),
-		DBSSLMode:        getEnv("DB_SSLMODE", "disable"),
-		JWTSecret:        getEnv("JWT_SECRET", "your-secret-key-here"),
-		JWTExpiry:        jwtExpiry,
-		UploadDir:        getEnv("UPLOAD_DIR", "./uploads"),
-		BaseURL:          getEnv("BASE_URL", "http://localhost:8080"),
-		CookieName:       getEnv("COOKIE_NAME", "token"),
-		CookieSecure:     getEnv("COOKIE_SECURE", "false") == "true",
-		CookieSameSite:   getEnv("COOKIE_SAME_SITE", "lax"),
-		FrontendOrigin:   getEnv("FRONTEND_ORIGIN", "http://localhost:3000"),
-		CORSAllowOrigins: getEnv("CORS_ALLOW_CREDENTIALS", "true") == "true",
+		Port:                 getEnv("PORT", "8080"),
+		Host:                 getEnv("HOST", "localhost"),
+		DBHost:               getEnv("DB_HOST", "localhost"),
+		DBPort:               getEnv("DB_PORT", "5432"),
+		DBUser:               getEnv("DB_USER", "rebid_user"),
+		DBPass:               getEnv("DB_PASSWORD", "rebid_password"),
+		DBName:               getEnv("DB_NAME", "rebid_db"),
+		DBSSLMode:            getEnv("DB_SSLMODE", "disable"),
+		JWTSecret:            getEnv("JWT_SECRET", "your-secret-key-here"),
+		JWTExpiry:            jwtExpiry,
+		UploadDir:            getEnv("UPLOAD_DIR", "./uploads"),
+		BaseURL:              getEnv("BASE_URL", "http://localhost:8080"),
+		CookieName:           getEnv("COOKIE_NAME", "token"),
+		CookieSecure:         getEnv("COOKIE_SECURE", "false") == "true",
+		CookieSameSite:       getEnv("COOKIE_SAME_SITE", "lax"),
+		FrontendOrigins:      parseFrontendOrigins(getEnv("FRONTEND_ORIGINS", "http://localhost:3000")),
+		CORSAllowCredentials: getEnv("CORS_ALLOW_CREDENTIALS", "true") == "true",
 	}
 
 	return config, nil
@@ -73,6 +74,42 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func parseFrontendOrigins(raw string) []string {
+	seen := make(map[string]bool)
+	var out []string
+
+	add := func(origin string) {
+		origin = strings.TrimSpace(origin)
+		if origin == "" || seen[origin] {
+			return
+		}
+		seen[origin] = true
+		out = append(out, origin)
+
+		switch {
+		case strings.HasPrefix(origin, "http://localhost:"):
+			port := strings.TrimPrefix(origin, "http://localhost:")
+			other := "http://127.0.0.1:" + port
+			if !seen[other] {
+				seen[other] = true
+				out = append(out, other)
+			}
+		case strings.HasPrefix(origin, "http://127.0.0.1:"):
+			port := strings.TrimPrefix(origin, "http://127.0.0.1:")
+			other := "http://localhost:" + port
+			if !seen[other] {
+				seen[other] = true
+				out = append(out, other)
+			}
+		}
+	}
+
+	for _, part := range strings.Split(raw, ",") {
+		add(part)
+	}
+	return out
 }
 
 func parseDuration(s string) time.Duration {
