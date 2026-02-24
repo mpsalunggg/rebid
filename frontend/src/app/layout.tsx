@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Outfit, Geist_Mono } from 'next/font/google'
 import './globals.css'
-import StoreProvider from '@/components/provider/store-provider'
+import StoreProvider from '@/components/provider/StoreProvider'
 
 const outfit = Outfit({
   variable: '--font-outfit',

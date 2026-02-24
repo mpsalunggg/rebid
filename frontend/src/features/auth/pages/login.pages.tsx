@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
-import ParticleLayout from '@/components/layout/particle-layout'
+import ParticleLayout from '@/components/layout/ParticleLayout'
 import { useLoginMutation } from '../auth.api'
 import { useRouter } from 'next/navigation'
 
