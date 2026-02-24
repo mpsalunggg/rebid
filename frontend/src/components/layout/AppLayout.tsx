@@ -8,6 +8,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <ParticleLayout>
       <div className="min-h-dvh w-full">
+        <div className="sticky z-10 mx-auto w-full max-w-[1200px] px-6 pt-6">
+          <TopBar />
+        </div>
         <div className="mx-auto w-full max-w-[1200px] grid grid-cols-12 gap-8 px-6 py-6">
           <aside className="col-span-12 lg:col-span-3">
             <div className="sticky top-4">
@@ -16,11 +19,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </aside>
 
           <main className="col-span-12 lg:col-span-6">
-            <div className="sticky top-4 z-10">
-              <TopBar />
-            </div>
-
-            <div className="mt-4">{children}</div>
+            <div>{children}</div>
           </main>
 
           <aside className="col-span-12 lg:col-span-3">
