@@ -15,19 +15,25 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import ParticleLayout from '@/components/layout/particle-layout'
+import { useLoginMutation } from '../auth.api'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+
+  const router = useRouter()
+  const [login, { isLoading, error }] = useLoginMutation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setLoading(false)
+    try {
+      await login({ email, password }).unwrap()
+      router.push('/')
+    } catch {
+      // Error sudah dari `error` di bawah
+    }
   }
 
   return (
@@ -49,17 +55,17 @@ export default function LoginPage() {
 
           <FieldGroup className="w-full gap-5">
             <Field>
-              <FieldLabel htmlFor="username">Username</FieldLabel>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
               <InputGroup
-                id="username"
-                type="text"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 leadingIcon={<UserIcon />}
-                autoComplete="username"
+                autoComplete="email"
                 required
-                disabled={loading}
+                disabled={isLoading}
               />
             </Field>
 
@@ -79,13 +85,18 @@ export default function LoginPage() {
                 }
                 autoComplete="current-password"
                 required
-                disabled={loading}
+                disabled={isLoading}
               />
             </Field>
           </FieldGroup>
 
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? <Spinner /> : <LogInIcon className="size-4" />}
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={isLoading}
+          >
+            {isLoading ? <Spinner /> : <LogInIcon className="size-4" />}
             Sign in
           </Button>
         </form>
