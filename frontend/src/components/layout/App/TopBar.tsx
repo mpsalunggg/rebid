@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import ToggleSwitch from '@/components/common/ToggleSwitch'
 import { Input } from '@/components/ui/input'
+import AvatarProfile from '@/components/common/AvatarProfile'
 
 export function TopBar() {
   return (
@@ -20,7 +21,7 @@ export function TopBar() {
 
           <ToggleSwitch />
 
-          <div className="h-9 w-9 rounded-full bg-neutral-200" />
+          <AvatarProfile />
         </div>
       </div>
     </div>
