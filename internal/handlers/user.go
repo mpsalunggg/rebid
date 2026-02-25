@@ -146,3 +146,21 @@ func (h *Handler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 	pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("User retrieved successfully", response))
 }
+
+func (h *Handler) LogoutUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
+		return
+	}
+
+	cookie := &http.Cookie{
+		Name:     h.cfg.CookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Now().Add(-time.Hour),
+	}
+	http.SetCookie(w, cookie)
+
+	pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Logout success", nil))
+}

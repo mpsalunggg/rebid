@@ -9,4 +9,5 @@ func SetupUserRoutes(router Router, cfg *config.Config, handler *handlers.Handle
 	router.HandleFunc(apiPath("/users/register"), handler.RegisterUser)
 	router.HandleFunc(apiPath("/users/login"), handler.LoginUser)
 	router.HandleFuncWithAuth(apiPath("/users/me"), handler.GetCurrentUser, cfg)
+	router.HandleFuncWithAuth(apiPath("/users/logout"), handler.LogoutUser, cfg)
 }
