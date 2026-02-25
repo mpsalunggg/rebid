@@ -9,14 +9,16 @@ import {
   UserIcon,
 } from 'lucide-react'
 
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { toast } from 'sonner'
 import { InputGroup } from '@/components/ui/input-group'
 import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import Image from 'next/image'
 import { Spinner } from '@/components/ui/spinner'
 import ParticleLayout from '@/components/layout/ParticleLayout'
 import { useLoginMutation } from '../auth.api'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -24,16 +26,19 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   const router = useRouter()
-  const [login, { isLoading, error }] = useLoginMutation()
+  const [login, { isLoading }] = useLoginMutation()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    try {
-      await login({ email, password }).unwrap()
-      router.push('/')
-    } catch {
-      // Error sudah dari `error` di bawah
-    }
+    login({ email, password })
+      .unwrap()
+      .then((response) => {
+        toast.success(response.message || 'Login success')
+        router.push('/')
+      })
+      .catch((error) => {
+        toast.error(error.message || 'Login failed')
+      })
   }
 
   return (
@@ -66,6 +71,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 required
                 disabled={isLoading}
+                className="dark:bg-input"
               />
             </Field>
 
@@ -86,10 +92,20 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required
                 disabled={isLoading}
+                className="dark:bg-input"
               />
             </Field>
           </FieldGroup>
 
+          <p className="text-sm text-center text-muted-foreground">
+            Don't have an account?{' '}
+            <Link
+              href="/register"
+              className="text-emerald-500 hover:text-primary"
+            >
+              Register
+            </Link>
+          </p>
           <Button
             type="submit"
             className="w-full"

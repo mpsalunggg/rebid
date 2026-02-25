@@ -32,7 +32,7 @@ const authSlice = createSlice({
     builder.addMatcher(
       authApi.endpoints.login.matchFulfilled,
       (state, action) => {
-        state.user = action.payload.user
+        state.user = action.payload.data.user
         state.isAuthenticated = true
       },
     )

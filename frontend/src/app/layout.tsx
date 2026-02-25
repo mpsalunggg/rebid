@@ -3,6 +3,7 @@ import { Outfit, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import StoreProvider from '@/components/provider/StoreProvider'
 import { ThemeProvider } from '@/components/provider/ThemeProvider'
+import { Toaster } from '@/components/ui/sonner'
 
 const outfit = Outfit({
   variable: '--font-outfit',
@@ -37,6 +38,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <Toaster position="bottom-right" richColors />
           </ThemeProvider>
         </StoreProvider>
       </body>
