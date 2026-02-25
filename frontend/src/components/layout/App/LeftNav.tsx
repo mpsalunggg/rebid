@@ -1,8 +1,11 @@
+'use client'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 const items = [
-  { href: '/home', label: 'Home' },
+  { href: '/', label: 'Home' },
   { href: '/explore', label: 'Explore' },
   { href: '/notifications', label: 'Notifications' },
   { href: '/bookmarks', label: 'Bookmarks' },
@@ -10,13 +13,18 @@ const items = [
 ]
 
 export function LeftNav() {
+  const pathname = usePathname()
+
   return (
-    <nav className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+    <nav className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-black/5">
       <ul className="space-y-1">
         {items.map((it) => (
           <li key={it.href}>
             <Link
-              className="block rounded-xl px-3 py-2 text-sm hover:bg-neutral-100"
+              className={cn(
+                'block rounded-lg px-3 py-2 text-sm hover:bg-primary/10',
+                pathname === it.href && 'bg-primary/10 text-primary',
+              )}
               href={it.href}
             >
               {it.label}
@@ -25,9 +33,7 @@ export function LeftNav() {
         ))}
       </ul>
 
-      <Button className="mt-4 w-full">
-        + Auction
-      </Button>
+      <Button className="mt-4 w-full">+ Auction</Button>
     </nav>
   )
 }

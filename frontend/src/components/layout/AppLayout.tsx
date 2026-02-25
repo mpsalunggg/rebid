@@ -7,7 +7,7 @@ import ParticleLayout from './ParticleLayout'
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <ParticleLayout>
-      <div className="min-h-dvh w-full">
+      <div className="relative z-10 min-h-dvh w-full">
         <div className="sticky z-10 mx-auto w-full max-w-[1200px] px-6 pt-6">
           <TopBar />
         </div>
