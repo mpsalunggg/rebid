@@ -51,6 +51,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.2.0
+      '@types/google-one-tap':
+        specifier: ^1.2.7
+        version: 1.2.7
       '@types/node':
         specifier: ^20
         version: 20.19.33
@@ -1395,6 +1398,9 @@ packages:
 
   '@ts-morph/common@0.27.0':
     resolution: {integrity: sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ==}
+
+  '@types/google-one-tap@1.2.7':
+    resolution: {integrity: sha512-u+1J+ldj/ZvvBBP7a5zC+sWy5LaHVfcTcOW/aaTKYoWUlsWi6OCBYYN4dsPlYRmA08y9jag8MtcT5rVgYdPf1g==}
 
   '@types/node@20.19.33':
     resolution: {integrity: sha512-Rs1bVAIdBs5gbTIKza/tgpMuG1k3U/UMJLWecIMxNdJFDMzcM5LOiLVRYh3PilWEYDIeUDv7bpiHPLPsbydGcw==}
@@ -4177,6 +4183,8 @@ snapshots:
       fast-glob: 3.3.3
       minimatch: 10.2.2
       path-browserify: 1.0.1
+
+  '@types/google-one-tap@1.2.7': {}
 
   '@types/node@20.19.33':
     dependencies:

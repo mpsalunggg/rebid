@@ -32,7 +32,32 @@ export const authApi = createApi({
         method: 'POST',
       }),
     }),
+    googleLogin: builder.mutation<
+      ApiSuccessResponse<LoginResponse>,
+      { code: string }
+    >({
+      query: (body) => ({
+        url: '/api/v1/auth/google',
+        method: 'POST',
+        body,
+      }),
+    }),
+    googleOneTapLogin: builder.mutation<
+      ApiSuccessResponse<LoginResponse>,
+      { credential: string }
+    >({
+      query: (body) => ({
+        url: '/api/v1/auth/google/one-tap',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 })
 
-export const { useLoginMutation, useLogoutMutation } = authApi
+export const {
+  useLoginMutation,
+  useLogoutMutation,
+  useGoogleLoginMutation,
+  useGoogleOneTapLoginMutation,
+} = authApi
