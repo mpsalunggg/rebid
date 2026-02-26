@@ -26,6 +26,14 @@ type LoginResponse struct {
 	User  UserResponse `json:"user"`
 }
 
+type GoogleAuthRequest struct {
+	Code string `json:"code"`
+}
+
+type GoogleOneTapRequest struct {
+	Credential string `json:"credential"`
+}
+
 func (r *CreateUserRequest) Validate() error {
 	if r.Name == "" {
 		return errors.New("name is required")

@@ -28,6 +28,10 @@ type Config struct {
 	CookieSameSite       string
 	FrontendOrigins      []string
 	CORSAllowCredentials bool
+	// oauth google
+	GoogleClientID     string
+	GoogleClientSecret string
+	GoogleRedirectURI  string
 }
 
 func (c *Config) DBConnectionString() string {
@@ -64,6 +68,9 @@ func Load() (*Config, error) {
 		CookieSameSite:       getEnv("COOKIE_SAME_SITE", "lax"),
 		FrontendOrigins:      parseFrontendOrigins(getEnv("FRONTEND_ORIGINS", "http://localhost:3000")),
 		CORSAllowCredentials: getEnv("CORS_ALLOW_CREDENTIALS", "true") == "true",
+		GoogleClientID:       getEnv("GOOGLE_CLIENT_ID", ""),
+		GoogleClientSecret:   getEnv("GOOGLE_CLIENT_SECRET", ""),
+		GoogleRedirectURI:    getEnv("GOOGLE_REDIRECT_URI", "http://localhost:8080/api/v1/auth/google/callback"),
 	}
 
 	return config, nil

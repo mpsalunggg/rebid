@@ -7,6 +7,9 @@ import (
 	"rebid/internal/models"
 	"rebid/internal/repositories"
 	"rebid/pkg"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -83,4 +86,35 @@ func (s *UserService) LoginUser(user *dto.LoginRequest) (*dto.LoginResponse, err
 
 func (s *UserService) GetUserByID(id string) (*models.User, error) {
 	return s.repo.GetByID(id)
+}
+
+func (s *UserService) LoginOrRegisterWithGoogle(email, name string) (*dto.LoginResponse, error) {
+	user, err := s.repo.GetByEmail(email)
+	if err != nil {
+		return nil, pkg.NewError("failed to get user", http.StatusInternalServerError)
+	}
+	if user == nil {
+		randomPass, _ := pkg.HashPassword(uuid.New().String() + time.Now().String())
+		createReq := &dto.CreateUserRequest{Name: name, Email: email, Password: randomPass}
+
+		_, err = s.repo.Create(createReq)
+		if err != nil {
+			return nil, pkg.NewError("failed to create user", http.StatusInternalServerError)
+		}
+		user, _ = s.repo.GetByEmail(email)
+	}
+	token, err := pkg.GenerateToken(user.ID, string(user.Role), s.config.JWTSecret, s.config.JWTExpiry)
+	if err != nil {
+		return nil, pkg.NewError("failed to generate token", http.StatusInternalServerError)
+	}
+	return &dto.LoginResponse{
+		Token: token,
+		User: dto.UserResponse{
+			ID:        user.ID.String(),
+			Name:      user.Name,
+			Email:     user.Email,
+			Role:      string(user.Role),
+			CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		},
+	}, nil
 }
