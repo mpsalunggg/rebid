@@ -12,11 +12,13 @@ export type User = {
 type AuthState = {
   user: User | null
   isAuthenticated: boolean
+  isLoading: boolean
 }
 
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
+  isLoading: false,
 }
 
 const authSlice = createSlice({
@@ -29,20 +31,39 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    ;(builder.addMatcher(
-      authApi.endpoints.login.matchFulfilled,
-      (state, action) => {
+    builder
+      .addMatcher(authApi.endpoints.login.matchFulfilled, (state, action) => {
         state.user = action.payload.data.user
         state.isAuthenticated = true
-      },
-    ),
-      builder.addMatcher(
+      })
+      .addMatcher(
         authApi.endpoints.googleLogin.matchFulfilled,
         (state, action) => {
           state.user = action.payload.data.user
           state.isAuthenticated = true
         },
-      ))
+      )
+      .addMatcher(authApi.endpoints.getUserMe.matchPending, (state) => {
+        state.isLoading = true
+      })
+      .addMatcher(
+        authApi.endpoints.getUserMe.matchFulfilled,
+        (state, action) => {
+          state.user = action.payload.data
+          state.isAuthenticated = true
+          state.isLoading = false
+        },
+      )
+      .addMatcher(
+        authApi.endpoints.getUserMe.matchRejected,
+        (state, action) => {
+          if (action.payload?.status === 401) {
+            state.user = null
+            state.isAuthenticated = false
+            state.isLoading = false
+          }
+        },
+      )
   },
 })
 

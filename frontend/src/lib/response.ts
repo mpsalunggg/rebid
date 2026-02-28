@@ -12,4 +12,5 @@ export type ApiSuccessResponse<T> = ApiResponse<T> & {
 export type ApiErrorResponse = ApiResponse<never> & {
   error: true
   message: string
+  status: number
 }

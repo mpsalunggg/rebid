@@ -27,14 +27,14 @@ const listItems = [
 
 export default function AvatarProfile() {
   const router = useRouter()
-  const [logout, { isLoading }] = useLogoutMutation()
+  const [logout] = useLogoutMutation()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="secondary"
           size="icon"
-          className="overflow-hidden rounded-full"
+          className="overflow-hidden w-9 h-9 rounded-full"
         >
           <img
             src="https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-5.png"

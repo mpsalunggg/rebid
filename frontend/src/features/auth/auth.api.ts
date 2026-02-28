@@ -1,9 +1,7 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
 import type { User } from './auth.slice'
 import { ApiSuccessResponse } from '@/lib/response'
 import { customBaseQuery } from '@/lib/baseQuery'
-
-const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
 export type LoginRequest = {
   email: string
@@ -18,6 +16,7 @@ export type LoginResponse = {
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: customBaseQuery,
+  tagTypes: ['User'],
   endpoints: (builder) => ({
     login: builder.mutation<ApiSuccessResponse<LoginResponse>, LoginRequest>({
       query: (body) => ({
@@ -25,6 +24,18 @@ export const authApi = createApi({
         method: 'POST',
         body,
       }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(
+            authApi.util.upsertQueryData('getUserMe', undefined, {
+              error: false,
+              message: 'User data retrieved',
+              data: data.data.user,
+            }),
+          )
+        } catch {}
+      },
     }),
     logout: builder.mutation<void, void>({
       query: () => ({
@@ -41,6 +52,18 @@ export const authApi = createApi({
         method: 'POST',
         body,
       }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(
+            authApi.util.upsertQueryData('getUserMe', undefined, {
+              error: false,
+              message: 'User data retrieved',
+              data: data.data.user,
+            }),
+          )
+        } catch {}
+      },
     }),
     googleOneTapLogin: builder.mutation<
       ApiSuccessResponse<LoginResponse>,
@@ -51,6 +74,25 @@ export const authApi = createApi({
         method: 'POST',
         body,
       }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(
+            authApi.util.upsertQueryData('getUserMe', undefined, {
+              error: false,
+              message: 'User data retrieved',
+              data: data.data.user,
+            }),
+          )
+        } catch {}
+      },
+    }),
+    getUserMe: builder.query<ApiSuccessResponse<User>, void>({
+      query: () => ({
+        url: '/api/v1/users/me',
+        method: 'GET',
+      }),
+      providesTags: ['User'],
     }),
   }),
 })
@@ -60,4 +102,5 @@ export const {
   useLogoutMutation,
   useGoogleLoginMutation,
   useGoogleOneTapLoginMutation,
+  useGetUserMeQuery,
 } = authApi

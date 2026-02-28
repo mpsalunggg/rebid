@@ -28,7 +28,6 @@ export const customBaseQuery: BaseQueryFn<
   ApiErrorResponse
 > = async (args, api, extraOptions) => {
   const result = await rawBaseQuery(args, api, extraOptions)
-  console.log('resulttt', result)
   if (result.error) {
     const err = result.error as FetchBaseQueryError
     const message =
@@ -44,6 +43,7 @@ export const customBaseQuery: BaseQueryFn<
       error: {
         error: true,
         message,
+        status: typeof err.status === 'number' ? err.status : 500,
       } satisfies ApiErrorResponse,
     }
   }

@@ -1,10 +1,25 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import ToggleSwitch from '@/components/common/ToggleSwitch'
 import { Input } from '@/components/ui/input'
 import AvatarProfile from '@/components/common/AvatarProfile'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/store'
+import { Button } from '@/components/ui/button'
+import { LogInIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useGetUserMeQuery } from '@/features/auth/auth.api'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function TopBar() {
+  const { isAuthenticated, user } = useSelector(
+    (state: RootState) => state.auth,
+  )
+  const { isFetching } = useGetUserMeQuery(undefined, { skip: !!user })
+  const router = useRouter()
+  const isLoading = isFetching
   return (
     <div className="rounded-2xl bg-card p-3 shadow-sm ring-1 ring-black/5">
       <div className="flex items-center justify-between">
@@ -21,7 +36,16 @@ export function TopBar() {
 
           <ToggleSwitch />
 
-          <AvatarProfile />
+          {isLoading ? (
+            <Skeleton className="w-9 h-9 rounded-full" />
+          ) : isAuthenticated ? (
+            <AvatarProfile />
+          ) : (
+            <Button onClick={() => router.push('/login')}>
+              <LogInIcon />
+              Login{' '}
+            </Button>
+          )}
         </div>
       </div>
     </div>
