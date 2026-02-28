@@ -84,3 +84,12 @@ clean: ## Clean build files
 install-deps: ## Install dependencies
 	@go mod download
 	@go mod tidy
+
+fe-dev: ## Run frontend development server
+	@cd frontend && pnpm run dev
+
+fe-build: ## Build frontend
+	@cd frontend && pnpm build
+
+fe-install: ## Install frontend dependencies
+	@cd frontend && pnpm install

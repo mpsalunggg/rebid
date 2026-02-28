@@ -12,20 +12,70 @@ import (
 )
 
 func (h *Handler) GoogleAuthRedirect(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
-		return
-	}
+	switch r.Method {
+	case http.MethodGet:
+		state := pkg.GenerateState()
+		url := fmt.Sprintf(
+			"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s&access_type=offline&prompt=consent",
+			h.cfg.GoogleClientID,
+			url.QueryEscape(h.cfg.GoogleRedirectURI),
+			url.QueryEscape("openid email profile"),
+			state,
+		)
+		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	
+	case http.MethodPost:
+		req := &dto.GoogleAuthRequest{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil || req.Code == "" {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("code is required"))
+			return
+		}
 
-	state := pkg.GenerateState()
-	url := fmt.Sprintf(
-		"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s&access_type=offline&prompt=consent",
-		h.cfg.GoogleClientID,
-		url.QueryEscape(h.cfg.GoogleRedirectURI),
-		url.QueryEscape("openid email profile"),
-		state,
-	)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+		tokenResp, err := pkg.ExchangeGoogleCode(h.cfg.GoogleClientID, h.cfg.GoogleClientSecret, h.cfg.GoogleRedirectURI, req.Code)
+		if err != nil {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("Failed to exchange code: "+err.Error()))
+			return
+		}
+
+		userInfo, err := pkg.GetGoogleUserInfo(tokenResp.AccessToken)
+		if err != nil {
+			pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse("Failed to get user info: "+err.Error()))
+			return
+		}
+
+		loginResponse, err := h.userService.LoginOrRegisterWithGoogle(userInfo.Email, userInfo.Name)
+		if err != nil {
+			pkg.HandleServiceError(w, err)
+			return
+		}
+
+		var sameSite http.SameSite
+		switch h.cfg.CookieSameSite {
+		case "lax":
+			sameSite = http.SameSiteLaxMode
+		case "none":
+			sameSite = http.SameSiteNoneMode
+		default:
+			sameSite = http.SameSiteStrictMode
+		}
+
+		cookie := &http.Cookie{
+			Name:     h.cfg.CookieName,
+			Value:    loginResponse.Token,
+			Path:     "/",
+			MaxAge:   int(h.cfg.JWTExpiry.Seconds()),
+			Expires:  time.Now().Add(h.cfg.JWTExpiry),
+			HttpOnly: true,
+			Secure:   h.cfg.CookieSecure,
+			SameSite: sameSite,
+		}
+
+		http.SetCookie(w, cookie)
+		pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Login success", loginResponse))
+	
+	default:
+		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
+	}
 }
 
 func (h *Handler) GoogleAuthCallback(w http.ResponseWriter, r *http.Request) {
