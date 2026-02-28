@@ -1,20 +1,63 @@
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useGetUserMeQuery } from '@/features/auth/auth.api'
+import { RootState } from '@/store'
+import { useSelector } from 'react-redux'
 
 export function RightSidebar() {
-  const { data } = useGetUserMeQuery()
+  const { user } = useSelector((state: RootState) => state.auth)
+  const { isFetching } = useGetUserMeQuery(undefined, { skip: !!user })
+
+  const getInitials = (name: string) => {
+    const words = name.trim().split(' ')
+    if (words.length === 1) {
+      return words[0].substring(0, 2).toUpperCase()
+    }
+    return (words[0][0] + words[1][0]).toUpperCase()
+  }
+
+  const userName = user?.name || 'User'
+  const userEmail = user?.email || ''
+  const userInitials = getInitials(userName)
+
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-black/5">
-        <div className="text-sm font-semibold">Profile</div>
-        <div className="mt-3 h-24 rounded-xl bg-neutral-100" />
-        <div className="mt-3 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-neutral-200" />
-          <div className="min-w-0">
-            <div className="truncate text-sm font-medium">John Doe</div>
-            <div className="truncate text-xs text-neutral-500">@johndoe</div>
+      {!isFetching ? (
+        <Card className="overflow-hidden p-0">
+          <div className="relative h-26 bg-linear-to-br from-primary via-primary/90 to-primary/70">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(0,0,0,0.1),transparent_50%)]" />
           </div>
-        </div>
-      </section>
+
+          <CardContent className="pb-4 pt-0 px-4">
+            <div className="-mt-12 mb-3 flex items-end gap-3">
+              <div className="relative">
+                <div className="flex h-13 w-13 items-center justify-center rounded-full bg-linear-to-br from-primary to-primary/80 text-lg font-bold text-primary-foreground shadow-lg ring-4 ring-card">
+                  {userInitials}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="truncate text-base font-semibold text-foreground">
+                {userName}
+              </h3>
+              <p className="truncate text-sm text-muted-foreground">
+                {userEmail}
+              </p>
+            </div>
+
+            <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <span>Active</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Skeleton className="w-full h-56" />
+      )}
 
       <section className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-black/5">
         <div className="text-sm font-semibold">Trending Auctions</div>
