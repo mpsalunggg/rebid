@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	database "rebid/internal/databases"
 	"rebid/internal/dto"
 	"time"
 
@@ -12,12 +11,14 @@ import (
 )
 
 type ItemRepository struct {
-	db *sql.DB
+	db        *sql.DB
+	imageRepo *ItemImageRepository
 }
 
-func NewItemRepository() *ItemRepository {
+func NewItemRepository(db *sql.DB, imageRepo *ItemImageRepository) *ItemRepository {
 	return &ItemRepository{
-		db: database.GetDB(),
+		db:        db,
+		imageRepo: imageRepo,
 	}
 }
 
@@ -93,8 +94,7 @@ func (r *ItemRepository) GetByID(itemID uuid.UUID) (*dto.ItemResponse, error) {
 		response.UpdatedAt = ""
 	}
 
-	imageRepo := NewItemImageRepository()
-	images, err := imageRepo.GetByItemID(itemID)
+	images, err := r.imageRepo.GetByItemID(itemID)
 	if err != nil {
 		response.Images = []dto.ItemImageResponse{}
 	} else {

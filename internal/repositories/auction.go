@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	database "rebid/internal/databases"
 	"rebid/internal/dto"
 	"time"
 
@@ -14,51 +13,59 @@ import (
 )
 
 type AuctionRepository struct {
-	db *sql.DB
+	db        *sql.DB
+	imageRepo *ItemImageRepository
 }
 
-func NewAuctionRepository() *AuctionRepository {
+func NewAuctionRepository(db *sql.DB, imageRepo *ItemImageRepository) *AuctionRepository {
 	return &AuctionRepository{
-		db: database.GetDB(),
+		db:        db,
+		imageRepo: imageRepo,
 	}
 }
 func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuction) ([]dto.ResponseAuction, error) {
+	// Query dengan JOIN ke items table
 	query := `
-		SELECT id, item_id, created_by, starting_price, current_price,
-		       start_time, end_time, current_bidder_id,
-		       status, created_at, updated_at
-		FROM auctions
-		WHERE 1=1
-	`
+        SELECT 
+            a.id, a.item_id, a.created_by, a.starting_price, a.current_price,
+            a.start_time, a.end_time, a.current_bidder_id,
+            a.status, a.created_at, a.updated_at,
+            i.id, i.user_id, i.name, i.description,
+            i.created_at, i.updated_at
+        FROM auctions a
+        LEFT JOIN items i ON a.item_id = i.id
+        WHERE 1=1
+    `
 
 	var args []interface{}
 	argPos := 1
 
+	// Filter logic (TETAP SAMA)
 	if filter.Status != nil {
-		query += fmt.Sprintf(" AND status = $%d", argPos)
+		query += fmt.Sprintf(" AND a.status = $%d", argPos)
 		args = append(args, *filter.Status)
 		argPos++
 	}
 
 	if filter.StartTime != nil {
-		query += fmt.Sprintf(" AND start_time >= $%d", argPos)
+		query += fmt.Sprintf(" AND a.start_time >= $%d", argPos)
 		args = append(args, *filter.StartTime)
 		argPos++
 	}
 
 	if filter.EndTime != nil {
-		query += fmt.Sprintf(" AND end_time <= $%d", argPos)
+		query += fmt.Sprintf(" AND a.end_time <= $%d", argPos)
 		args = append(args, *filter.EndTime)
 		argPos++
 	}
 
 	if filter.StartingPrice != nil {
-		query += fmt.Sprintf(" AND starting_price >= $%d", argPos)
+		query += fmt.Sprintf(" AND a.starting_price >= $%d", argPos)
 		args = append(args, *filter.StartingPrice)
 		argPos++
 	}
 
-	query += " ORDER BY start_time DESC"
+	query += " ORDER BY a.start_time DESC"
 
 	if filter.Limit > 0 {
 		query += fmt.Sprintf(" LIMIT %d", filter.Limit)
@@ -71,12 +78,21 @@ func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuctio
 	defer rows.Close()
 
 	var responses []dto.ResponseAuction
+	var itemIDs []uuid.UUID
 
+	// Scan all auctions + items
 	for rows.Next() {
-
 		var res dto.ResponseAuction
+		var item dto.ItemResponse
+		var (
+			auctionCreatedAt time.Time
+			auctionUpdatedAt time.Time
+			itemCreatedAt    time.Time
+			itemUpdatedAt    sql.NullTime
+		)
 
 		err := rows.Scan(
+			// Auction fields
 			&res.ID,
 			&res.ItemID,
 			&res.CreatedBy,
@@ -86,15 +102,51 @@ func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuctio
 			&res.EndTime,
 			&res.CurrentBidderID,
 			&res.Status,
-			&res.CreatedAt,
-			&res.UpdatedAt,
+			&auctionCreatedAt,
+			&auctionUpdatedAt,
+			// Item fields
+			&item.ID,
+			&item.UserID,
+			&item.Name,
+			&item.Description,
+			&itemCreatedAt,
+			&itemUpdatedAt,
 		)
 
 		if err != nil {
 			return nil, err
 		}
 
+		// Format timestamps
+		res.CreatedAt = auctionCreatedAt.Format(time.RFC3339)
+		res.UpdatedAt = auctionUpdatedAt.Format(time.RFC3339)
+		item.CreatedAt = itemCreatedAt.Format(time.RFC3339)
+		if itemUpdatedAt.Valid {
+			item.UpdatedAt = itemUpdatedAt.Time.Format(time.RFC3339)
+		}
+
+		// Initialize empty images
+		item.Images = []dto.ItemImageResponse{}
+		res.Item = &item
+
 		responses = append(responses, res)
+		itemIDs = append(itemIDs, res.ItemID)
+	}
+
+	// Batch fetch ALL images in ONE query
+	if len(itemIDs) > 0 {
+		imagesMap, err := r.imageRepo.GetByItemIDs(itemIDs)
+		if err != nil {
+			// Log error tapi continue dengan empty images
+			// atau return error jika images critical
+		} else {
+			// Attach images ke masing-masing item
+			for i := range responses {
+				if images, found := imagesMap[responses[i].ItemID]; found {
+					responses[i].Item.Images = images
+				}
+			}
+		}
 	}
 
 	return responses, nil

@@ -3,7 +3,6 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
-	database "rebid/internal/databases"
 	"rebid/internal/dto"
 	"strings"
 
@@ -16,9 +15,9 @@ type ItemImageRepository struct {
 	db *sql.DB
 }
 
-func NewItemImageRepository() *ItemImageRepository {
+func NewItemImageRepository(db *sql.DB) *ItemImageRepository {
 	return &ItemImageRepository{
-		db: database.GetDB(),
+		db: db,
 	}
 }
 
@@ -155,4 +154,61 @@ func (r *ItemImageRepository) GetByItemIDExcept(itemID uuid.UUID, keepIDs []uuid
 		images = append(images, img)
 	}
 	return images, rows.Err()
+}
+
+func (r *ItemImageRepository) GetByItemIDs(itemIDs []uuid.UUID) (map[uuid.UUID][]dto.ItemImageResponse, error) {
+	if len(itemIDs) == 0 {
+		return make(map[uuid.UUID][]dto.ItemImageResponse), nil
+	}
+
+	placeholders := make([]string, len(itemIDs))
+	args := make([]interface{}, len(itemIDs))
+	for i, id := range itemIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args[i] = id
+	}
+
+	query := fmt.Sprintf(`
+		SELECT id, item_id, url, filename, mime_type, size, created_at
+		FROM item_images
+		WHERE item_id IN (%s)
+		ORDER BY item_id, created_at ASC
+	`, strings.Join(placeholders, ", "))
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get item images: %w", err)
+	}
+	defer rows.Close()
+
+	imagesMap := make(map[uuid.UUID][]dto.ItemImageResponse)
+
+	for rows.Next() {
+		var img dto.ItemImageResponse
+		var itemID uuid.UUID
+		var createdAt time.Time
+
+		err := rows.Scan(
+			&img.ID,
+			&itemID,
+			&img.URL,
+			&img.Filename,
+			&img.MimeType,
+			&img.Size,
+			&createdAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan item image: %w", err)
+		}
+
+		img.CreatedAt = createdAt.Format(time.RFC3339)
+		img.ItemID = itemID.String()
+
+		imagesMap[itemID] = append(imagesMap[itemID], img)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating item images: %w", err)
+	}
+
+	return imagesMap, nil
 }

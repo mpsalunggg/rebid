@@ -19,10 +19,10 @@ type ItemService struct {
 	config    *config.Config
 }
 
-func NewItemService(cfg *config.Config) *ItemService {
+func NewItemService(cfg *config.Config, repo *repositories.ItemRepository, imageRepo *repositories.ItemImageRepository) *ItemService {
 	return &ItemService{
-		repo:      repositories.NewItemRepository(),
-		imageRepo: repositories.NewItemImageRepository(),
+		repo:      repo,
+		imageRepo: imageRepo,
 		config:    cfg,
 	}
 }

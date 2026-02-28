@@ -15,13 +15,20 @@ type Handler struct {
 	wsHub          *websocket.Hub
 }
 
-func NewHandler(cfg *config.Config, wsHub *websocket.Hub) *Handler {
+func NewHandler(
+	cfg *config.Config,
+	wsHub *websocket.Hub,
+	userService *services.UserService,
+	itemService *services.ItemService,
+	auctionService *services.AuctionService,
+	bidService *services.BidService,
+) *Handler {
 	return &Handler{
 		cfg:            cfg,
-		userService:    services.NewUserService(cfg),
-		itemService:    services.NewItemService(cfg),
-		auctionService: services.NewAuctionService(cfg),
-		bidService:     services.NewBidService(cfg),
+		userService:    userService,
+		itemService:    itemService,
+		auctionService: auctionService,
+		bidService:     bidService,
 		wsHub:          wsHub,
 	}
 }

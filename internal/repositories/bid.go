@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	database "rebid/internal/databases"
 	"rebid/internal/dto"
 	"time"
 
@@ -15,9 +14,9 @@ type BidRepository struct {
 	db *sql.DB
 }
 
-func NewBidRepository() *BidRepository {
+func NewBidRepository(db *sql.DB) *BidRepository {
 	return &BidRepository{
-		db: database.GetDB(),
+		db: db,
 	}
 }
 

@@ -23,7 +23,7 @@ func (h *Handler) GoogleAuthRedirect(w http.ResponseWriter, r *http.Request) {
 			state,
 		)
 		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-	
+
 	case http.MethodPost:
 		req := &dto.GoogleAuthRequest{}
 		if err := json.NewDecoder(r.Body).Decode(req); err != nil || req.Code == "" {
@@ -72,7 +72,7 @@ func (h *Handler) GoogleAuthRedirect(w http.ResponseWriter, r *http.Request) {
 
 		http.SetCookie(w, cookie)
 		pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Login success", loginResponse))
-	
+
 	default:
 		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
 	}

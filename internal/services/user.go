@@ -17,9 +17,9 @@ type UserService struct {
 	config *config.Config
 }
 
-func NewUserService(cfg *config.Config) *UserService {
+func NewUserService(cfg *config.Config, repo *repositories.UserRepository) *UserService {
 	return &UserService{
-		repo:   repositories.NewUserRepository(),
+		repo:   repo,
 		config: cfg,
 	}
 }

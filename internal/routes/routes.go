@@ -3,8 +3,11 @@ package routes
 import (
 	"net/http"
 	"rebid/internal/config"
+	database "rebid/internal/databases"
 	"rebid/internal/handlers"
 	"rebid/internal/middleware"
+	"rebid/internal/repositories"
+	"rebid/internal/services"
 	"rebid/internal/websocket"
 )
 
@@ -51,7 +54,21 @@ func apiPath(path string) string {
 func SetupRoutes(cfg *config.Config) Router {
 	router := NewRouter(cfg)
 	hub := websocket.NewHub()
-	handler := handlers.NewHandler(cfg, hub)
+
+	db := database.GetDB()
+
+	itemImageRepo := repositories.NewItemImageRepository(db)
+	userRepo := repositories.NewUserRepository(db)
+	itemRepo := repositories.NewItemRepository(db, itemImageRepo)
+	auctionRepo := repositories.NewAuctionRepository(db, itemImageRepo)
+	bidRepo := repositories.NewBidRepository(db)
+
+	userService := services.NewUserService(cfg, userRepo)
+	itemService := services.NewItemService(cfg, itemRepo, itemImageRepo)
+	auctionService := services.NewAuctionService(cfg, auctionRepo)
+	bidService := services.NewBidService(cfg, db, bidRepo, auctionRepo)
+
+	handler := handlers.NewHandler(cfg, hub, userService, itemService, auctionService, bidService)
 
 	router.HandleFunc("/health", handler.HealthCheck)
 	router.HandleFunc("/uploads/", func(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +77,7 @@ func SetupRoutes(cfg *config.Config) Router {
 
 	SetupUserRoutes(router, cfg, handler)
 	SetupItemRoutes(router, cfg, handler)
-	SetupAuctionRoutes(router, cfg, handler, hub)
+	SetupAuctionRoutes(router, cfg, handler, hub, auctionRepo)
 	SetupBidRoutes(router, cfg, handler)
 	return router
 }

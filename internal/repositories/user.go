@@ -3,7 +3,6 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
-	database "rebid/internal/databases"
 	"rebid/internal/dto"
 	"rebid/internal/models"
 
@@ -14,9 +13,9 @@ type UserRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository() *UserRepository {
+func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{
-		db: database.GetDB(),
+		db: db,
 	}
 }
 

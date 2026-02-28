@@ -2,9 +2,9 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"rebid/internal/config"
-	database "rebid/internal/databases"
 	"rebid/internal/dto"
 	"rebid/internal/repositories"
 
@@ -12,15 +12,17 @@ import (
 )
 
 type BidService struct {
+	db          *sql.DB
 	repo        *repositories.BidRepository
 	auctionRepo *repositories.AuctionRepository
 	config      *config.Config
 }
 
-func NewBidService(cfg *config.Config) *BidService {
+func NewBidService(cfg *config.Config, db *sql.DB, repo *repositories.BidRepository, auctionRepo *repositories.AuctionRepository) *BidService {
 	return &BidService{
-		repo:        repositories.NewBidRepository(),
-		auctionRepo: repositories.NewAuctionRepository(),
+		db:          db,
+		repo:        repo,
+		auctionRepo: auctionRepo,
 		config:      cfg,
 	}
 }
@@ -35,8 +37,7 @@ func (s *BidService) CreateBid(ctx context.Context, bid *dto.CreateBidRequest, u
 		return nil, fmt.Errorf("bid amount must be greater than current price")
 	}
 
-	db := database.GetDB()
-	tx, err := db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}

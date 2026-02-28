@@ -16,10 +16,10 @@ type AuctionService struct {
 	repo   *repositories.AuctionRepository
 }
 
-func NewAuctionService(cfg *config.Config) *AuctionService {
+func NewAuctionService(cfg *config.Config, auctionRepo *repositories.AuctionRepository) *AuctionService {
 	return &AuctionService{
 		config: cfg,
-		repo:   repositories.NewAuctionRepository(),
+		repo:   auctionRepo,
 	}
 }
 
