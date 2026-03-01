@@ -47,7 +47,7 @@ export default function GoogleCallbackPage() {
 
   return (
     <ParticleLayout>
-      <div className="absolute flex flex-col items-center justify-center gap-4">
+      <div className="flex flex-col h-screen items-center justify-center gap-4">
         <Spinner className="size-12 text-primary" />
         <p className="text-muted-foreground text-sm">
           Authenticating with Google...

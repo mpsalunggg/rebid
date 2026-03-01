@@ -83,8 +83,8 @@ export default function LoginPage() {
         strategy="afterInteractive"
         onLoad={() => setGsiReady(true)}
       />
-      <div className="absolute w-full max-w-md">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <div className="w-full max-w-lg h-screen flex items-center">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <Image src="rebid.svg" alt="Rebid" width={40} height={40} />
