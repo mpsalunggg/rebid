@@ -5,6 +5,7 @@ import {
   type FetchBaseQueryError,
 } from '@reduxjs/toolkit/query'
 import type { ApiErrorResponse } from '@/lib/response'
+import { SerializedError } from '@reduxjs/toolkit'
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
