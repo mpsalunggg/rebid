@@ -21,6 +21,11 @@ type UserResponse struct {
 	CreatedAt string `json:"created_at"`
 }
 
+type UserDetailResponse struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
 type LoginResponse struct {
 	Token string       `json:"token"`
 	User  UserResponse `json:"user"`

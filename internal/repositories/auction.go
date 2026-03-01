@@ -24,23 +24,23 @@ func NewAuctionRepository(db *sql.DB, imageRepo *ItemImageRepository) *AuctionRe
 	}
 }
 func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuction) ([]dto.ResponseAuction, error) {
-	// Query dengan JOIN ke items table
 	query := `
-        SELECT 
-            a.id, a.item_id, a.created_by, a.starting_price, a.current_price,
-            a.start_time, a.end_time, a.current_bidder_id,
-            a.status, a.created_at, a.updated_at,
-            i.id, i.user_id, i.name, i.description,
-            i.created_at, i.updated_at
-        FROM auctions a
-        LEFT JOIN items i ON a.item_id = i.id
-        WHERE 1=1
+			SELECT 
+					a.id, a.item_id, a.created_by, a.starting_price, a.current_price,
+					a.start_time, a.end_time, a.current_bidder_id,
+					a.status, a.created_at, a.updated_at,
+					i.id, i.user_id, i.name, i.description,
+					i.created_at, i.updated_at,
+					u.name, u.email
+			FROM auctions a
+			LEFT JOIN items i ON a.item_id = i.id
+			LEFT JOIN users u ON a.created_by = u.id
+			WHERE 1=1
     `
 
 	var args []interface{}
 	argPos := 1
 
-	// Filter logic (TETAP SAMA)
 	if filter.Status != nil {
 		query += fmt.Sprintf(" AND a.status = $%d", argPos)
 		args = append(args, *filter.Status)
@@ -80,10 +80,10 @@ func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuctio
 	var responses []dto.ResponseAuction
 	var itemIDs []uuid.UUID
 
-	// Scan all auctions + items
 	for rows.Next() {
 		var res dto.ResponseAuction
 		var item dto.ItemResponse
+		var user dto.UserDetailResponse
 		var (
 			auctionCreatedAt time.Time
 			auctionUpdatedAt time.Time
@@ -92,7 +92,6 @@ func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuctio
 		)
 
 		err := rows.Scan(
-			// Auction fields
 			&res.ID,
 			&res.ItemID,
 			&res.CreatedBy,
@@ -104,20 +103,22 @@ func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuctio
 			&res.Status,
 			&auctionCreatedAt,
 			&auctionUpdatedAt,
-			// Item fields
+
 			&item.ID,
 			&item.UserID,
 			&item.Name,
 			&item.Description,
 			&itemCreatedAt,
 			&itemUpdatedAt,
+
+			&user.Name,
+			&user.Email,
 		)
 
 		if err != nil {
 			return nil, err
 		}
 
-		// Format timestamps
 		res.CreatedAt = auctionCreatedAt.Format(time.RFC3339)
 		res.UpdatedAt = auctionUpdatedAt.Format(time.RFC3339)
 		item.CreatedAt = itemCreatedAt.Format(time.RFC3339)
@@ -125,22 +126,18 @@ func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuctio
 			item.UpdatedAt = itemUpdatedAt.Time.Format(time.RFC3339)
 		}
 
-		// Initialize empty images
 		item.Images = []dto.ItemImageResponse{}
 		res.Item = &item
+		res.User = user
 
 		responses = append(responses, res)
 		itemIDs = append(itemIDs, res.ItemID)
 	}
 
-	// Batch fetch ALL images in ONE query
 	if len(itemIDs) > 0 {
 		imagesMap, err := r.imageRepo.GetByItemIDs(itemIDs)
 		if err != nil {
-			// Log error tapi continue dengan empty images
-			// atau return error jika images critical
 		} else {
-			// Attach images ke masing-masing item
 			for i := range responses {
 				if images, found := imagesMap[responses[i].ItemID]; found {
 					responses[i].Item.Images = images
