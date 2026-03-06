@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -20,6 +21,34 @@ func NewItemRepository(db *sql.DB, imageRepo *ItemImageRepository) *ItemReposito
 		db:        db,
 		imageRepo: imageRepo,
 	}
+}
+
+func (r *ItemRepository) GetMyItems(ctx context.Context, userID uuid.UUID) ([]dto.MyItemResponse, error) {
+	query := `
+		SELECT id, name
+		FROM items
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get my items: %w", err)
+	}
+
+	defer rows.Close()
+
+	var items []dto.MyItemResponse
+	for rows.Next() {
+		var item dto.MyItemResponse
+		err := rows.Scan(&item.ID, &item.Name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan item: %w", err)
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
 }
 
 func (r *ItemRepository) Create(item *dto.CreateItemRequest, userID uuid.UUID) (*dto.ItemResponse, error) {

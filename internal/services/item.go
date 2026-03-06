@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -25,6 +26,15 @@ func NewItemService(cfg *config.Config, repo *repositories.ItemRepository, image
 		imageRepo: imageRepo,
 		config:    cfg,
 	}
+}
+
+func (s *ItemService) GetMyItems(ctx context.Context, userID string) ([]dto.MyItemResponse, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, pkg.NewError("invalid user ID format", http.StatusBadRequest)
+	}
+
+	return s.repo.GetMyItems(ctx, userUUID)
 }
 
 func (s *ItemService) CreateItem(item *dto.CreateItemRequest, userID string) (*dto.ItemResponse, error) {

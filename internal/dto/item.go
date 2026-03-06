@@ -12,9 +12,9 @@ type CreateItemImageData struct {
 }
 
 type CreateItemRequest struct {
-	Name          string                `form:"name" json:"name"`
-	Description   string                `form:"description" json:"description"`
-	Images        []CreateItemImageData `json:"images,omitempty"`
+	Name        string                `form:"name" json:"name"`
+	Description string                `form:"description" json:"description"`
+	Images      []CreateItemImageData `json:"images,omitempty"`
 }
 
 type UpdateItemRequest struct {
@@ -26,13 +26,18 @@ type UpdateItemRequest struct {
 }
 
 type ItemResponse struct {
-	ID            string              `json:"id"`
-	UserID        string              `json:"user_id"`
-	Name          string              `json:"name"`
-	Description   string              `json:"description"`
-	Images        []ItemImageResponse `json:"images"`
-	CreatedAt     string              `json:"created_at"`
-	UpdatedAt     string              `json:"updated_at"`
+	ID          string              `json:"id"`
+	UserID      string              `json:"user_id"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	Images      []ItemImageResponse `json:"images"`
+	CreatedAt   string              `json:"created_at"`
+	UpdatedAt   string              `json:"updated_at"`
+}
+
+type MyItemResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func validateItem(name, description string, isCreate bool) error {

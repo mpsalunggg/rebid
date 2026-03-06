@@ -9,6 +9,23 @@ import (
 	"strconv"
 )
 
+func (h *Handler) GetMyItems(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
+		return
+	}
+
+	userID, _ := middleware.GetUserByID(r)
+
+	items, err := h.itemService.GetMyItems(r.Context(), userID.String())
+	if err != nil {
+		pkg.HandleServiceError(w, err)
+		return
+	}
+
+	pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Items retrieved successfully", items))
+}
+
 func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
@@ -31,8 +48,8 @@ func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 	description := r.FormValue("description")
 
 	request := &dto.CreateItemRequest{
-		Name:          name,
-		Description:   description,
+		Name:        name,
+		Description: description,
 	}
 
 	if err := request.Validate(); err != nil {
