@@ -59,7 +59,7 @@ export function RightSidebar() {
         <Skeleton className="w-full h-56" />
       )}
 
-      <section className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-black/5">
+      {/* <section className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-black/5">
         <div className="text-sm font-semibold">Trending Auctions</div>
         <ul className="mt-3 space-y-2 text-sm">
           <li className="rounded-xl bg-neutral-50 px-3 py-2">Vintage Rolex</li>
@@ -70,7 +70,7 @@ export function RightSidebar() {
             Classic Muscle Cars
           </li>
         </ul>
-      </section>
+      </section> */}
     </div>
   )
 }

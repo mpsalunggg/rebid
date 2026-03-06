@@ -2,16 +2,31 @@
 
 import { useGetAuctionsQuery } from '@/features/auction/auction.api'
 import { Card, CardContent } from '@/components/ui/card'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from '@/store'
 import { Input } from '@/components/ui/input'
 import EmptyAuctionState from '@/features/auction/components/EmptyAuctionState'
 import AuctionCardSkeleton from '@/features/auction/components/AuctionCardSkeleton'
 import AuctionCard from '@/features/auction/components/AuctionCard'
+import AppDialog from '@/components/common/AppDialog'
+import CreateAuctionDialog from '@/features/auction/components/CreateAuctionDialog'
+import { openDialog } from '@/store/dialog.slice'
+import { useCallback } from 'react'
 
 export default function HomePage() {
+  const dispatch = useDispatch()
   const { data, isLoading, error } = useGetAuctionsQuery()
   const { user } = useSelector((state: RootState) => state.auth)
+
+  const openCreateAuctionDialog = useCallback(() => {
+    dispatch(
+      openDialog({
+        id: 'create-auction',
+        component: <CreateAuctionDialog />,
+        maxWidth: 'max-w-2xl',
+      }),
+    )
+  }, [dispatch])
 
   return (
     <section className="">
@@ -22,7 +37,12 @@ export default function HomePage() {
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex-1">
-              <Input placeholder="Create new auction" />
+              <Input
+                placeholder="Create new auction"
+                onClick={openCreateAuctionDialog}
+                readOnly
+                className="cursor-pointer"
+              />
             </div>
           </div>
         </CardContent>
@@ -60,6 +80,8 @@ export default function HomePage() {
           )}
         </>
       )}
+
+      <AppDialog />
     </section>
   )
 }
