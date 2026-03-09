@@ -1,5 +1,13 @@
 'use client'
 
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useDispatch } from 'react-redux'
+import { closeDialog } from '@/store/dialog.slice'
+import {
+  createAuctionSchema,
+  type CreateAuctionFormData,
+} from '../auction.schema'
 import {
   DialogHeader,
   DialogTitle,
@@ -9,19 +17,30 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useDispatch } from 'react-redux'
-import { closeDialog } from '@/store/dialog.slice'
+import InputCalendar from '@/components/common/InputCalendar'
 
 export default function CreateAuctionDialog() {
   const dispatch = useDispatch()
 
-  const handleSubmit = (e: React.SubmitEvent) => {
-    e.preventDefault()
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateAuctionFormData>({
+    resolver: zodResolver(createAuctionSchema),
+    defaultValues: {
+      status: 'SCHEDULED',
+    },
+  })
+
+  const onSubmit = async (data: CreateAuctionFormData) => {
+    console.log('Form data', data)
     dispatch(closeDialog())
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <DialogHeader>
         <DialogTitle>Create New Auction</DialogTitle>
         <DialogDescription>
@@ -35,8 +54,11 @@ export default function CreateAuctionDialog() {
           <Input
             id="item-name"
             placeholder="e.g., Vintage Camera"
-            required
+            {...register('itemName')}
           />
+          {errors.itemName && (
+            <p className="text-sm text-red-500">{errors.itemName.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -45,8 +67,11 @@ export default function CreateAuctionDialog() {
             id="description"
             placeholder="Describe your item..."
             className="w-full min-h-24 px-3 py-2 text-sm rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-            required
+            {...register('description')}
           />
+          {errors.description && (
+            <p className="text-sm text-red-500">{errors.description.message}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -56,8 +81,13 @@ export default function CreateAuctionDialog() {
               id="starting-price"
               type="number"
               placeholder="10000"
-              required
+              {...register('startingPrice', { valueAsNumber: true })}
             />
+            {errors.startingPrice && (
+              <p className="text-sm text-red-500">
+                {errors.startingPrice.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -65,7 +95,7 @@ export default function CreateAuctionDialog() {
             <select
               id="status"
               className="w-full h-10 px-3 py-2 text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-              required
+              {...register('status')}
             >
               <option value="SCHEDULED">Scheduled</option>
               <option value="ACTIVE">Active</option>
@@ -75,21 +105,39 @@ export default function CreateAuctionDialog() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="start-time">Start Time</Label>
-            <Input
-              id="start-time"
-              type="datetime-local"
-              required
+            <Label>Start Time</Label>
+            <Controller
+              control={control}
+              name="startTime"
+              render={({ field }) => (
+                <InputCalendar
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Pick start time"
+                />
+              )}
             />
+            {errors.startTime && (
+              <p className="text-sm text-red-500">{errors.startTime.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="end-time">End Time</Label>
-            <Input
-              id="end-time"
-              type="datetime-local"
-              required
+            <Label>End Time</Label>
+            <Controller
+              control={control}
+              name="endTime"
+              render={({ field }) => (
+                <InputCalendar
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Pick end time"
+                />
+              )}
             />
+            {errors.endTime && (
+              <p className="text-sm text-red-500">{errors.endTime.message}</p>
+            )}
           </div>
         </div>
       </div>
@@ -102,8 +150,12 @@ export default function CreateAuctionDialog() {
         >
           Cancel
         </Button>
-        <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700">
-          Create Auction
+        <Button
+          type="submit"
+          className="bg-emerald-600 hover:bg-emerald-700"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Creating...' : 'Create Auction'}
         </Button>
       </DialogFooter>
     </form>
