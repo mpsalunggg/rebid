@@ -3,13 +3,15 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { HomeIcon, SearchIcon, BellIcon, BookmarkIcon, UserIcon } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
 
 const items = [
-  { href: '/', label: 'Home' },
-  { href: '/explore', label: 'Explore' },
-  { href: '/notifications', label: 'Notifications' },
-  { href: '/bookmarks', label: 'Bookmarks' },
-  { href: '/profile', label: 'Profile' },
+  { href: '/', label: 'Home', icon: HomeIcon },
+  { href: '/explore', label: 'Explore', icon: SearchIcon },
+  { href: '/notifications', label: 'Notifications', icon: BellIcon },
+  { href: '/bookmarks', label: 'Bookmarks', icon: BookmarkIcon },
+  { href: '/profile', label: 'Profile', icon: UserIcon },
 ]
 
 export function LeftNav() {
@@ -22,18 +24,20 @@ export function LeftNav() {
           <li key={it.href}>
             <Link
               className={cn(
-                'block rounded-lg px-3 py-2 text-sm hover:bg-primary/10',
+                'flex gap-2 items-center rounded-lg px-3 py-2 text-sm hover:bg-primary/10',
                 pathname === it.href && 'bg-primary/10 text-primary',
               )}
               href={it.href}
             >
-              {it.label}
+              <div className="flex items-center flex-1 gap-2">
+                <it.icon />
+                {it.label}
+              </div>
+              {pathname === it.href && <div className='h-6 bg-emerald-400 w-[2px] rounded-full' />}
             </Link>
           </li>
         ))}
       </ul>
-
-      <Button className="mt-4 w-full">+ Auction</Button>
     </nav>
   )
 }
