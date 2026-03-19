@@ -10,7 +10,7 @@ export const itemApi = createApi({
   endpoints: (builder) => ({
     getItems: builder.query<ApiSuccessResponse<Item[]>, void>({
       query: () => ({
-        url: '/api/v1/items',
+        url: '/api/v1/items/list',
         method: 'GET',
       }),
     }),
