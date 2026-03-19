@@ -29,7 +29,7 @@ export default function HomePage() {
 	}, [dispatch]);
 
 	return (
-		<section className="">
+		<section>
 			<Card className="mb-6">
 				<CardContent>
 					<div className="flex items-start gap-3">
@@ -67,18 +67,14 @@ export default function HomePage() {
 					<AuctionCardSkeleton />
 					<AuctionCardSkeleton />
 				</div>
+			) : data?.data && data.data.length > 0 ? (
+				<div className="space-y-6">
+					{data.data.map((auction) => (
+						<AuctionCard key={auction.id} auction={auction} />
+					))}
+				</div>
 			) : (
-				<>
-					{data?.data && data.data.length > 0 ? (
-						<div className="space-y-6">
-							{data.data.map((auction) => (
-								<AuctionCard key={auction.id} auction={auction} />
-							))}
-						</div>
-					) : (
-						<EmptyAuctionState />
-					)}
-				</>
+				<EmptyAuctionState />
 			)}
 
 			<AppDialog />

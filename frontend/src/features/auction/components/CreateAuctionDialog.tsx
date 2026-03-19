@@ -1,9 +1,9 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { closeDialog } from "@/store/dialog.slice";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	createAuctionSchema,
 	type CreateAuctionFormData,
@@ -18,10 +18,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import InputCalendar from "@/components/common/InputCalendar";
+import { useGetItemsQuery } from "@/features/item/item.api";
+import {
+	Select,
+	SelectTrigger,
+	SelectValue,
+	SelectContent,
+	SelectItem,
+} from "@/components/ui/select";
+import type { Item } from "@/features/item/item.type";
 
 export default function CreateAuctionDialog() {
 	const dispatch = useDispatch();
-
+	const { data: items } = useGetItemsQuery();
 	const {
 		register,
 		control,
@@ -39,6 +48,8 @@ export default function CreateAuctionDialog() {
 		dispatch(closeDialog());
 	};
 
+	console.log("items", items);
+
 	return (
 		<form onSubmit={handleSubmit(onSubmit)}>
 			<DialogHeader>
@@ -51,14 +62,19 @@ export default function CreateAuctionDialog() {
 			<div className="space-y-4 py-4">
 				<div className="space-y-2">
 					<Label htmlFor="item-name">Item Name</Label>
-					<Input
-						id="item-name"
-						placeholder="e.g., Vintage Camera"
-						{...register("itemName")}
-					/>
-					{errors.itemName && (
-						<p className="text-sm text-red-500">{errors.itemName.message}</p>
-					)}
+					<Select>
+						<SelectTrigger className="w-full">
+							<SelectValue placeholder="Select an item" />
+						</SelectTrigger>
+						<SelectContent>
+							{items &&
+								items.data.map((item: Item) => (
+									<SelectItem key={item.id} value={item.name}>
+										{item.name}
+									</SelectItem>
+								))}
+						</SelectContent>
+					</Select>
 				</div>
 
 				<div className="space-y-2">

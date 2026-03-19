@@ -17,7 +17,7 @@ export default function ParticleLayout({
 	}, [resolvedTheme]);
 
 	return (
-		<section className="bg-background dark:bg-secondary relative overflow flex h-full w-full flex-col items-center justify-center">
+		<section className="bg-background dark:bg-secondary/10 relative overflow flex h-full w-full flex-col items-center justify-center">
 			<Particles
 				className="fixed inset-0 z-0 h-full"
 				ease={20}
