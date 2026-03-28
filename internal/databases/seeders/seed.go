@@ -1,14 +1,15 @@
 package seeders
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 )
 
-func Seed() error {
+func Seed(db *sql.DB) error {
 	log.Println("Starting database seeding...")
 
-	users, err := seedUsers()
+	users, err := seedUsers(db)
 	if err != nil {
 		return fmt.Errorf("failed to seed users: %w", err)
 	}

@@ -1,9 +1,9 @@
 package routes
 
 import (
+	"database/sql"
 	"net/http"
 	"rebid/internal/config"
-	database "rebid/internal/databases"
 	"rebid/internal/handlers"
 	"rebid/internal/middleware"
 	"rebid/internal/repositories"
@@ -51,11 +51,9 @@ func apiPath(path string) string {
 	return version + path
 }
 
-func SetupRoutes(cfg *config.Config) Router {
+func SetupRoutes(cfg *config.Config, db *sql.DB) Router {
 	router := NewRouter(cfg)
 	hub := websocket.NewHub()
-
-	db := database.GetDB()
 
 	itemImageRepo := repositories.NewItemImageRepository(db)
 	userRepo := repositories.NewUserRepository(db)

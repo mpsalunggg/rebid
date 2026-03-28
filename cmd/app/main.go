@@ -20,13 +20,13 @@ func RunServer() {
 		log.Fatal("Failed to load config:", err)
 	}
 
-	err = database.InitDB(cfg)
+	db, err := database.Open(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	defer database.CloseDB()
+	defer db.Close()
 
-	router := routes.SetupRoutes(cfg)
+	router := routes.SetupRoutes(cfg, db)
 
 	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 	fmt.Printf("Server starting on http://%s\n", addr)

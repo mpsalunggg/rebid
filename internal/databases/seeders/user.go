@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	database "rebid/internal/databases"
 	"rebid/internal/models"
 	"rebid/pkg"
 
 	"github.com/google/uuid"
 )
 
-func seedUsers() ([]models.User, error) {
-	db := database.GetDB()
+func seedUsers(db *sql.DB) ([]models.User, error) {
 	users := []models.User{}
 
 	userData := []struct {

@@ -16,13 +16,13 @@ func RunSeed() {
 		log.Fatal("Failed to load config:", err)
 	}
 
-	err = database.InitDB(cfg)
+	db, err := database.Open(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	defer database.CloseDB()
+	defer db.Close()
 
-	if err := seeders.Seed(); err != nil {
+	if err := seeders.Seed(db); err != nil {
 		log.Fatal("Failed to seed database:", err)
 	}
 }
