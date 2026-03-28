@@ -23,7 +23,7 @@ export function RightSidebar() {
 	return (
 		<div className="space-y-4">
 			{!isFetching ? (
-				<Card className="overflow-hidden p-0">
+				<Card className="overflow-hidden p-0 border shadow-none">
 					<div className="relative h-26 bg-linear-to-br from-primary via-primary/90 to-primary/70">
 						<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_50%)]" />
 						<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(0,0,0,0.1),transparent_50%)]" />

@@ -22,7 +22,7 @@ export function LeftNav() {
 	const pathname = usePathname();
 
 	return (
-		<nav className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-black/5">
+		<nav className="rounded-2xl bg-card p-4 border">
 			<ul className="space-y-1">
 				{items.map((it) => (
 					<li key={it.href}>

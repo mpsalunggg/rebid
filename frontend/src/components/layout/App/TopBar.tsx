@@ -21,7 +21,7 @@ export function TopBar() {
 	const router = useRouter();
 	const isLoading = isFetching;
 	return (
-		<div className="rounded-b-2xl bg-card p-3 shadow-sm ring-1 ring-black/5">
+		<div className="rounded-b-2xl bg-card p-3 border">
 			<div className="flex items-center justify-between">
 				<Link href="/" className="flex items-center gap-2">
 					<Image src="/rebid.svg" alt="Rebid" width={32} height={32} />

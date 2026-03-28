@@ -22,7 +22,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 				<div className="sticky top-0 z-10 mx-auto w-full max-w-[1200px] px-6">
 					<TopBar />
 				</div>
-				<div className="mx-auto w-full max-w-[1200px] grid grid-cols-12 gap-8 px-6 py-6">
+				<div className="mx-auto w-full max-w-[1200px] grid grid-cols-12 gap-5 px-6 py-6">
 					<aside className="col-span-12 lg:col-span-3">
 						<div className="sticky top-20">
 							<LeftNav />

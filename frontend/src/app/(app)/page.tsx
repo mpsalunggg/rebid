@@ -30,7 +30,7 @@ export default function HomePage() {
 
 	return (
 		<section>
-			<Card className="mb-6">
+			<Card className="mb-6 border shadow-none">
 				<CardContent>
 					<div className="flex items-start gap-3">
 						<div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-semibold shrink-0">

@@ -12,7 +12,7 @@ export default function AuctionCard({ auction }: { auction: Auction }) {
 	const priceDelta = auction.current_price - auction.starting_price;
 
 	return (
-		<Card className="overflow-hidden">
+		<Card className="overflow-hidden border shadow-none">
 			<CardContent>
 				<div className="flex items-start justify-between mb-4">
 					<div className="flex items-center gap-3">

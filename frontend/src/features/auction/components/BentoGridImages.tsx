@@ -1,6 +1,5 @@
 import { BASE_URL } from "@/constants/url";
 import type { Auction } from "../auction.type";
-import { Image } from "lucide-react";
 
 export default function BentoGridImages({
 	images,
@@ -10,14 +9,7 @@ export default function BentoGridImages({
 	const imageCount = images.length;
 
 	if (imageCount === 0) {
-		return (
-			<div className="w-full h-72 bg-gray-100 dark:bg-gray-800 flex items-center justify-center rounded-lg">
-				<div className="text-gray-400 flex flex-col items-center justify-center">
-					<Image />
-					<span className="text-xs">No image</span>
-				</div>
-			</div>
-		);
+		return null
 	}
 
 	if (imageCount === 1) {
