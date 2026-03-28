@@ -12,6 +12,7 @@ import AppDialog from "@/components/common/AppDialog";
 import CreateAuctionDialog from "@/features/auction/components/CreateAuctionDialog";
 import { openDialog } from "@/store/dialog.slice";
 import { useCallback } from "react";
+import { RightSidebar } from "@/components/layout/App/RightSidebar";
 
 export default function HomePage() {
 	const dispatch = useDispatch();
@@ -29,55 +30,63 @@ export default function HomePage() {
 	}, [dispatch]);
 
 	return (
-		<section>
-			<Card className="mb-6 border shadow-none">
-				<CardContent>
-					<div className="flex items-start gap-3">
-						<div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-semibold shrink-0">
-							{user?.name?.charAt(0).toUpperCase() || "U"}
-						</div>
-						<div className="flex-1">
-							<Input
-								placeholder="Create new auction"
-								onClick={openCreateAuctionDialog}
-								readOnly
-								className="cursor-pointer"
-							/>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
+    <section className="grid grid-cols-12 col-span-12 lg:col-span-9 gap-5">
+      <main className="col-span-12 lg:col-span-8">
+        <Card className="mb-6 border shadow-none">
+          <CardContent>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-semibold shrink-0">
+                {user?.name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="flex-1">
+                <Input
+                  placeholder="Create new auction"
+                  onClick={openCreateAuctionDialog}
+                  readOnly
+                  className="cursor-pointer"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-			{error && (
-				<div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-800 dark:text-red-200 mb-6">
-					<p className="font-medium">
-						{error.message || "Failed to load auctions"}{" "}
-					</p>
-					<p className="text-sm mt-1">
-						{"status" in error && error.status === 401
-							? "Please login to continue"
-							: "Please try again later"}
-					</p>
-				</div>
-			)}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-800 dark:text-red-200 mb-6">
+            <p className="font-medium">
+              {error.message || 'Failed to load auctions'}{' '}
+            </p>
+            <p className="text-sm mt-1">
+              {'status' in error && error.status === 401
+                ? 'Please login to continue'
+                : 'Please try again later'}
+            </p>
+          </div>
+        )}
 
-			{isLoading ? (
-				<div className="space-y-6">
-					<AuctionCardSkeleton />
-					<AuctionCardSkeleton />
-					<AuctionCardSkeleton />
-				</div>
-			) : data?.data && data.data.length > 0 ? (
-				<div className="space-y-6">
-					{data.data.map((auction) => (
-						<AuctionCard key={auction.id} auction={auction} />
-					))}
-				</div>
-			) : (
-				<EmptyAuctionState />
-			)}
+        {isLoading ? (
+          <div className="space-y-6">
+            <AuctionCardSkeleton />
+            <AuctionCardSkeleton />
+            <AuctionCardSkeleton />
+          </div>
+        ) : data?.data && data.data.length > 0 ? (
+          <div className="space-y-6">
+            {data.data.map((auction) => (
+              <AuctionCard key={auction.id} auction={auction} />
+            ))}
+          </div>
+        ) : (
+          <EmptyAuctionState />
+        )}
 
-			<AppDialog />
-		</section>
-	);
+        <AppDialog />
+      </main>
+
+      <aside className="col-span-12 lg:col-span-4">
+        <div className="sticky top-19">
+          <RightSidebar />
+        </div>
+      </aside>
+    </section>
+  )
 }
