@@ -23,6 +23,73 @@ func NewItemRepository(db *sql.DB, imageRepo *ItemImageRepository) *ItemReposito
 	}
 }
 
+func (r *ItemRepository) CountAll(ctx context.Context) (int64, error) {
+	var n int64
+
+	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM items").Scan(&n)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count all items: %w", err)
+	}
+
+	return n, nil
+}
+
+func (r *ItemRepository) GetAll(ctx context.Context, offset, limit int) ([]dto.ItemResponse, error) {
+	query := `
+		SELECT id, user_id, name, description, created_at, updated_at
+		FROM items
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all items: %w", err)
+	}
+	defer rows.Close()
+
+	var items []dto.ItemResponse
+	for rows.Next() {
+		var item dto.ItemResponse
+		var createdAt time.Time
+		var updatedAt sql.NullTime
+		var id uuid.UUID
+		if err := rows.Scan(
+			&id,
+			&item.UserID,
+			&item.Name,
+			&item.Description,
+			&createdAt,
+			&updatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan item: %w", err)
+		}
+
+		item.ID = id.String()
+		item.CreatedAt = createdAt.Format(time.RFC3339)
+		if updatedAt.Valid {
+			item.UpdatedAt = updatedAt.Time.Format(time.RFC3339)
+		} else {
+			item.UpdatedAt = ""
+		}
+
+		images, err := r.imageRepo.GetByItemID(id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get images: %w", err)
+		} else {
+			item.Images = images
+		}
+
+		items = append(items, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate items: %w", err)
+	}
+
+	return items, nil
+}
+
 func (r *ItemRepository) GetMyItems(ctx context.Context, userID uuid.UUID) ([]dto.MyItemResponse, error) {
 	query := `
 		SELECT id, name

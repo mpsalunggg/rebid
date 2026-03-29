@@ -28,6 +28,32 @@ func NewItemService(cfg *config.Config, repo *repositories.ItemRepository, image
 	}
 }
 
+func (s *ItemService) GetAll(ctx context.Context, page, limit int) (*dto.PaginatedItemsResponse, error) {
+	offset := pkg.PaginationOffset(page, limit)
+
+	total, err := s.repo.CountAll(ctx)
+	if err != nil {
+		return nil, pkg.NewError(err.Error(), http.StatusInternalServerError)
+	}
+
+	items, err := s.repo.GetAll(ctx, offset, limit)
+	if err != nil {
+		return nil, pkg.NewError(err.Error(), http.StatusInternalServerError)
+	}
+
+	baseURL := strings.TrimSuffix(s.config.BaseURL, "/")
+	for i := range items {
+		for j := range items[i].Images {
+			items[i].Images[j].URL = fmt.Sprintf("%s/%s", baseURL, items[i].Images[j].URL)
+		}
+	}
+
+	return &dto.PaginatedItemsResponse{
+		Items: items,
+		Meta:  pkg.NewPagination(page, limit, total),
+	}, nil
+}
+
 func (s *ItemService) GetMyItems(ctx context.Context, userID string) ([]dto.MyItemResponse, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {

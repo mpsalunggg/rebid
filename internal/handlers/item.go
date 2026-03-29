@@ -6,9 +6,28 @@ import (
 	"rebid/internal/dto"
 	"rebid/internal/middleware"
 	"rebid/pkg"
-	"strconv"
 )
 
+func (h *Handler) GetAllItems(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
+		return
+	}
+
+	page, limit, err := pkg.ParsePaginationQuery(r.URL.Query())
+	if err != nil {
+		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse(err.Error()))
+		return
+	}
+
+	items, err := h.itemService.GetAll(r.Context(), page, limit)
+	if err != nil {
+		pkg.HandleServiceError(w, err)
+		return
+	}
+
+	pkg.JSONResponse(w, http.StatusOK, pkg.SuccessResponse("Items retrieved successfully", items))
+}
 func (h *Handler) GetMyItems(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		pkg.JSONResponse(w, http.StatusMethodNotAllowed, pkg.ErrorResponse("Method not allowed"))
@@ -131,18 +150,10 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	startingPrice := 0.0
-	if sp := r.FormValue("starting_price"); sp != "" {
-		if parsed, err := strconv.ParseFloat(sp, 64); err == nil {
-			startingPrice = parsed
-		}
-	}
-
 	request := &dto.UpdateItemRequest{
-		Name:          r.FormValue("name"),
-		Description:   r.FormValue("description"),
-		StartingPrice: startingPrice,
-		KeepImageIDs:  r.Form["keep_image_ids"],
+		Name:         r.FormValue("name"),
+		Description:  r.FormValue("description"),
+		KeepImageIDs: r.Form["keep_image_ids"],
 	}
 
 	if err := request.Validate(); err != nil {

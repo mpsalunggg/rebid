@@ -2,7 +2,13 @@ package dto
 
 import (
 	"errors"
+	"rebid/pkg"
 )
+
+type PaginatedItemsResponse struct {
+	Items []ItemResponse `json:"items"`
+	Meta  pkg.Pagination `json:"meta"`
+}
 
 type CreateItemImageData struct {
 	URL      string `json:"url"`
@@ -18,11 +24,10 @@ type CreateItemRequest struct {
 }
 
 type UpdateItemRequest struct {
-	Name          string                `form:"name" json:"name"`
-	Description   string                `form:"description" json:"description"`
-	StartingPrice float64               `form:"starting_price" json:"starting_price"`
-	KeepImageIDs  []string              `form:"keep_image_ids" json:"keep_image_ids"`
-	Images        []CreateItemImageData `json:"images,omitempty"`
+	Name         string                `form:"name" json:"name"`
+	Description  string                `form:"description" json:"description"`
+	KeepImageIDs []string              `form:"keep_image_ids" json:"keep_image_ids"`
+	Images       []CreateItemImageData `json:"images,omitempty"`
 }
 
 type ItemResponse struct {
