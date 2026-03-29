@@ -6,8 +6,8 @@ import (
 )
 
 type PaginatedItemsResponse struct {
-	Items []ItemResponse `json:"items"`
-	Meta  pkg.Pagination `json:"meta"`
+	Records []ItemResponse `json:"records"`
+	Meta    pkg.Pagination `json:"meta"`
 }
 
 type CreateItemImageData struct {

@@ -49,7 +49,7 @@ func (s *ItemService) GetAll(ctx context.Context, page, limit int) (*dto.Paginat
 	}
 
 	return &dto.PaginatedItemsResponse{
-		Items: items,
+		Records: items,
 		Meta:  pkg.NewPagination(page, limit, total),
 	}, nil
 }
