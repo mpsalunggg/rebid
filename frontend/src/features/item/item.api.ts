@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { customBaseQuery } from '@/lib/baseQuery'
-import type { ApiSuccessResponse } from '@/lib/response'
+import type { ApiPaginatedResponse, ApiSuccessResponse } from '@/lib/response'
 import type { Item } from './item.type'
 
 export const itemApi = createApi({
@@ -14,7 +14,14 @@ export const itemApi = createApi({
         method: 'GET',
       }),
     }),
+    getAll: builder.query<ApiPaginatedResponse<Item>, { page: number; limit: number }>({
+      query: (query) => ({
+        url: '/api/v1/items',
+        method: 'GET',
+        params: query,
+      }),
+    }),
   }),
 })
 
-export const { useGetItemsQuery } = itemApi
+export const { useGetItemsQuery, useGetAllQuery } = itemApi

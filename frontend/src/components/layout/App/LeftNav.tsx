@@ -8,11 +8,13 @@ import {
 	BellIcon,
 	BookmarkIcon,
 	UserIcon,
+	PackageIcon,
 } from "lucide-react";
 
 const items = [
 	{ href: "/", label: "Home", icon: HomeIcon },
 	{ href: "/explore", label: "Explore", icon: SearchIcon },
+	{ href: "/items", label: "My Items", icon: PackageIcon },
 	{ href: "/notifications", label: "Notifications", icon: BellIcon },
 	{ href: "/bookmarks", label: "Bookmarks", icon: BookmarkIcon },
 	{ href: "/profile", label: "Profile", icon: UserIcon },
