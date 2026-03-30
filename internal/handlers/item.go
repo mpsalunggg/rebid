@@ -14,13 +14,19 @@ func (h *Handler) GetAllItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, err := middleware.GetUserByID(r)
+	if err != nil {
+		pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("User not authenticated"))
+		return
+	}
+
 	page, limit, err := pkg.ParsePaginationQuery(r.URL.Query())
 	if err != nil {
 		pkg.JSONResponse(w, http.StatusBadRequest, pkg.ErrorResponse(err.Error()))
 		return
 	}
 
-	items, err := h.itemService.GetAll(r.Context(), page, limit)
+	items, err := h.itemService.GetAll(r.Context(), page, limit, userID.String())
 	if err != nil {
 		pkg.HandleServiceError(w, err)
 		return

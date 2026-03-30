@@ -28,15 +28,20 @@ func NewItemService(cfg *config.Config, repo *repositories.ItemRepository, image
 	}
 }
 
-func (s *ItemService) GetAll(ctx context.Context, page, limit int) (*dto.PaginatedItemsResponse, error) {
+func (s *ItemService) GetAll(ctx context.Context, page, limit int, userID string) (*dto.PaginatedItemsResponse, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, pkg.NewError("invalid user ID format", http.StatusBadRequest)
+	}
+
 	offset := pkg.PaginationOffset(page, limit)
 
-	total, err := s.repo.CountAll(ctx)
+	total, err := s.repo.CountAll(ctx, userUUID)
 	if err != nil {
 		return nil, pkg.NewError(err.Error(), http.StatusInternalServerError)
 	}
 
-	items, err := s.repo.GetAll(ctx, offset, limit)
+	items, err := s.repo.GetAll(ctx, offset, limit, userUUID)
 	if err != nil {
 		return nil, pkg.NewError(err.Error(), http.StatusInternalServerError)
 	}

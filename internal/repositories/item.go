@@ -23,10 +23,10 @@ func NewItemRepository(db *sql.DB, imageRepo *ItemImageRepository) *ItemReposito
 	}
 }
 
-func (r *ItemRepository) CountAll(ctx context.Context) (int64, error) {
+func (r *ItemRepository) CountAll(ctx context.Context, userID uuid.UUID) (int64, error) {
 	var n int64
 
-	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM items").Scan(&n)
+	err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM items WHERE user_id = $1", userID).Scan(&n)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count all items: %w", err)
 	}
@@ -34,15 +34,16 @@ func (r *ItemRepository) CountAll(ctx context.Context) (int64, error) {
 	return n, nil
 }
 
-func (r *ItemRepository) GetAll(ctx context.Context, offset, limit int) ([]dto.ItemResponse, error) {
+func (r *ItemRepository) GetAll(ctx context.Context, offset, limit int, userID uuid.UUID) ([]dto.ItemResponse, error) {
 	query := `
 		SELECT id, user_id, name, description, created_at, updated_at
 		FROM items
+		WHERE user_id = $3
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, limit, offset)
+	rows, err := r.db.QueryContext(ctx, query, limit, offset, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all items: %w", err)
 	}
