@@ -20,8 +20,16 @@ export const itemApi = createApi({
         method: 'GET',
         params: query,
       }),
+      providesTags: ['Item'],
+    }),
+    deleteItem: builder.mutation<ApiSuccessResponse<void>, { id: string }>({
+      query: ({ id }) => ({
+        url: `/api/v1/items/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Item'],
     }),
   }),
 })
 
-export const { useGetItemsQuery, useGetAllQuery } = itemApi
+export const { useGetItemsQuery, useGetAllQuery, useDeleteItemMutation } = itemApi

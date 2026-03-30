@@ -13,7 +13,7 @@ import CreateItemDialog from '@/features/item/components/CreateItemDialog'
 import EditItemDialog from '@/features/item/components/EditItemDialog'
 import DeleteItemDialog from '@/features/item/components/DeleteItemDialog'
 import AppDialog from '@/components/common/AppDialog'
-import { useGetAllQuery } from '@/features/item/item.api'
+import { useGetAllQuery, useDeleteItemMutation } from '@/features/item/item.api'
 
 const mockItems: Item[] = [
   {
@@ -51,6 +51,7 @@ const mockItems: Item[] = [
 export default function ItemsPage() {
   const dispatch = useDispatch()
   const { data: items, isLoading } = useGetAllQuery({ page: 1, limit: 10 })
+  const [deleteItem, { isLoading: isDeleting }] = useDeleteItemMutation()
   // const [items, setItems] = useState<Item[]>(mockItems);
 
   // console.log("[ITEMS] - ", items);
@@ -97,6 +98,7 @@ export default function ItemsPage() {
   const handleDelete = useCallback(
     (itemId: string) => {
       // setItems((prev) => prev.filter((item) => item.id !== itemId));
+      deleteItem({ id: itemId })
       dispatch(closeDialog())
     },
     [dispatch],
@@ -168,7 +170,7 @@ export default function ItemsPage() {
         <div>
           <h1 className="text-xl font-bold">My Items</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {/* {items.length} item{items.length !== 1 ? "s" : ""} in your */}
+            {items?.data.records?.length} item{items?.data.records?.length !== 1 ? "s" : ""} in your
             collection
           </p>
         </div>
