@@ -6,10 +6,12 @@ import (
 )
 
 func SetupItemRoutes(router Router, cfg *config.Config, handler *handlers.Handler) {
-	router.HandleFuncWithAuth(apiPath("/items"), handler.GetAllItems, cfg)
-	router.HandleFuncWithAuth(apiPath("/items/list"), handler.GetMyItems, cfg)
-	router.HandleFuncWithAuth(apiPath("/items/detail/{id}"), handler.GetItemByID, cfg)
-	router.HandleFuncWithAuth(apiPath("/items/create"), handler.CreateItem, cfg)
-	router.HandleFuncWithAuth(apiPath("/items/update/{id}"), handler.UpdateItem, cfg)
-	router.HandleFuncWithAuth(apiPath("/items/delete/{id}"), handler.DeleteItem, cfg)
+	router.HandleFuncWithAuth("GET "+apiPath("/items"), handler.GetAllItems, cfg)
+	router.HandleFuncWithAuth("GET "+apiPath("/items/list"), handler.GetMyItems, cfg)
+	router.HandleFuncWithAuth("POST "+apiPath("/items/create"), handler.CreateItem, cfg)
+
+	router.HandleFuncWithAuth("GET "+apiPath("/items/{id}"), handler.GetItemByID, cfg)
+	router.HandleFuncWithAuth("PUT "+apiPath("/items/{id}"), handler.UpdateItem, cfg)
+	router.HandleFuncWithAuth("PATCH "+apiPath("/items/{id}"), handler.UpdateItem, cfg)
+	router.HandleFuncWithAuth("DELETE "+apiPath("/items/{id}"), handler.DeleteItem, cfg)
 }
