@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDispatch } from 'react-redux'
 import { closeDialog } from '@/store/dialog.slice'
-import type { Item } from '@/features/item/item.type'
+import type { Item, ItemUpdatePayload } from '@/features/item/item.type'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { type UpdateItemFormData, updateItemSchema } from '../item.schemas'
@@ -29,12 +29,7 @@ import EditItemImageZone from '@/features/item/components/EditItemImageZone'
 
 interface EditItemDialogProps {
   item: Item
-  onSubmit: (data: {
-    name: string
-    description: string
-    keepImageIds: string[]
-    newImages: File[]
-  }) => void
+  onSubmit: (data: ItemUpdatePayload) => void
 }
 
 export default function EditItemDialog({
@@ -76,8 +71,8 @@ export default function EditItemDialog({
     onSubmit({
       name: values.name,
       description: values.description,
-      keepImageIds,
-      newImages: values.imageEdit.images,
+      keep_image_ids: keepImageIds,
+      images: values.imageEdit.images,
     })
   }
 

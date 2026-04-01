@@ -30,9 +30,7 @@ export default function EditItemImageZone({
     if (isKept) {
       onChange({
         ...value,
-        keepImageIds: value.keepImageIds.filter(
-          (id) => id !== imageId,
-        ),
+        keepImageIds: value.keepImageIds.filter((id) => id !== imageId),
       })
     } else {
       onChange({

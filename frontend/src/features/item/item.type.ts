@@ -9,3 +9,10 @@ export interface Item {
   created_at: string
   updated_at: string
 }
+
+export interface ItemUpdatePayload {
+  name: string
+  description: string
+  keep_image_ids: string[]
+  images: File[]
+}

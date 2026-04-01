@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { toast } from 'sonner'
+import { useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { openDialog, closeDialog } from '@/store/dialog.slice'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { PlusIcon, PackageIcon } from 'lucide-react'
-import type { Item } from '@/features/item/item.type'
+import type { Item, ItemUpdatePayload } from '@/features/item/item.type'
 import ItemCard from '@/features/item/components/ItemCard'
 import ItemDetailDialog from '@/features/item/components/ItemDetailDialog'
 import CreateItemDialog from '@/features/item/components/CreateItemDialog'
@@ -17,20 +18,20 @@ import {
   useGetAllQuery,
   useDeleteItemMutation,
   useCreateItemMutation,
+  useUpdateItemMutation,
 } from '@/features/item/item.api'
-import PaginationCustom from '@/components/common/PaginationCustom'
-import { toast } from 'sonner'
 import { useQueryParams } from '@/hooks/useQueryParams'
 import PaginationControl from '@/components/common/PaginationControl'
 
 export default function ItemsPage() {
-  const { getParam, setParam } = useQueryParams()
+  const { getParam } = useQueryParams()
   const page = Number.parseInt(getParam('page', '1'), 10)
   const limit = Number.parseInt(getParam('limit', '5'), 10)
   const dispatch = useDispatch()
   const { data: items, isLoading } = useGetAllQuery({ page, limit })
   const [createItem, { isLoading: isCreating }] = useCreateItemMutation()
   const [deleteItem, { isLoading: isDeleting }] = useDeleteItemMutation()
+  const [updateItem, { isLoading: isUpdating }] = useUpdateItemMutation()
 
   const handleCreate = useCallback(
     (data: { name: string; description: string; images: File[] }) => {
@@ -46,46 +47,41 @@ export default function ItemsPage() {
           dispatch(closeDialog())
         })
     },
-    [createItem],
+    [dispatch, createItem],
   )
 
   const handleEdit = useCallback(
-    (
-      itemId: string,
-      data: {
-        name: string
-        description: string
-        keepImageIds: string[]
-        newImages: File[]
-      },
-    ) => {
-      // setItems((prev) =>
-      //   prev.map((item) =>
-      //     item.id === itemId
-      //       ? {
-      //           ...item,
-      //           name: data.name,
-      //           description: data.description,
-      //           images: item.images.filter((img) =>
-      //             data.keepImageIds.includes(img.id),
-      //           ),
-      //           updated_at: new Date().toISOString(),
-      //         }
-      //       : item,
-      //   ),
-      // );
-      dispatch(closeDialog())
+    (itemId: string, data: ItemUpdatePayload) => {
+      updateItem({ id: itemId, data })
+        .unwrap()
+        .then((response) => {
+          toast.success(response.message)
+        })
+        .catch((error) => {
+          toast.error(error.data.message)
+        })
+        .finally(() => {
+          dispatch(closeDialog())
+        })
     },
-    [dispatch],
+    [dispatch, updateItem],
   )
 
   const handleDelete = useCallback(
     (itemId: string) => {
-      // setItems((prev) => prev.filter((item) => item.id !== itemId));
       deleteItem({ id: itemId })
-      dispatch(closeDialog())
+        .unwrap()
+        .then((response) => {
+          toast.success(response.message)
+        })
+        .catch((error) => {
+          toast.error(error.data.message)
+        })
+        .finally(() => {
+          dispatch(closeDialog())
+        })
     },
-    [dispatch],
+    [dispatch, deleteItem],
   )
 
   const openView = useCallback(

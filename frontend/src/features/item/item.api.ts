@@ -1,7 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { customBaseQuery } from '@/lib/baseQuery'
 import type { ApiPaginatedResponse, ApiSuccessResponse } from '@/lib/response'
-import type { Item } from './item.type'
+import type { Item, ItemUpdatePayload } from './item.type'
 import { CreateItemFormData } from './item.schemas'
 
 export const itemApi = createApi({
@@ -47,6 +47,28 @@ export const itemApi = createApi({
       },
       invalidatesTags: ['Item'],
     }),
+    updateItem: builder.mutation<
+      ApiSuccessResponse<Item>,
+      { id: string; data: ItemUpdatePayload }
+    >({
+      query: ({ id, data }) => {
+        const formData = new FormData()
+        formData.append('name', data.name)
+        formData.append('description', data.description)
+        data.keep_image_ids.forEach((id) => {
+          formData.append('keep_image_ids', id)
+        })
+        data.images.forEach((image) => {
+          formData.append('images', image)
+        })
+        return {
+          url: `/api/v1/items/${id}`,
+          method: 'PUT',
+          body: formData,
+        }
+      },
+      invalidatesTags: ['Item'],
+    }),
     deleteItem: builder.mutation<ApiSuccessResponse<void>, { id: string }>({
       query: ({ id }) => ({
         url: `/api/v1/items/${id}`,
@@ -57,5 +79,10 @@ export const itemApi = createApi({
   }),
 })
 
-export const { useGetItemsQuery, useGetAllQuery, useDeleteItemMutation, useCreateItemMutation } =
-  itemApi
+export const {
+  useGetItemsQuery,
+  useGetAllQuery,
+  useDeleteItemMutation,
+  useCreateItemMutation,
+  useUpdateItemMutation,
+} = itemApi
