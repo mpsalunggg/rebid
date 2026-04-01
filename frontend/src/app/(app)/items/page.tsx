@@ -14,6 +14,7 @@ import EditItemDialog from '@/features/item/components/EditItemDialog'
 import DeleteItemDialog from '@/features/item/components/DeleteItemDialog'
 import AppDialog from '@/components/common/AppDialog'
 import { useGetAllQuery, useDeleteItemMutation } from '@/features/item/item.api'
+import PaginationCustom from '@/components/common/PaginationCustom'
 
 const mockItems: Item[] = [
   {
@@ -170,8 +171,8 @@ export default function ItemsPage() {
         <div>
           <h1 className="text-xl font-bold">My Items</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {items?.data.records?.length} item{items?.data.records?.length !== 1 ? "s" : ""} in your
-            collection
+            {items?.data.records?.length} item
+            {items?.data.records?.length !== 1 ? 's' : ''} in your collection
           </p>
         </div>
         <Button
@@ -190,39 +191,48 @@ export default function ItemsPage() {
           <p className="text-sm text-muted-foreground">Loading items...</p>
         </div>
       ) : (
-        <Card className="border shadow-none py-0 overflow-hidden">
-          {items?.data.records && items?.data.records.length > 0 ? (
-            <div className="divide-y">
-              {items.data.records.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  onView={openView}
-                  onEdit={openEdit}
-                  onDelete={openDelete}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                <PackageIcon className="w-8 h-8 text-muted-foreground" />
+        <>
+          <Card className="border shadow-none py-0 overflow-hidden">
+            {items?.data.records && items?.data.records.length > 0 ? (
+              <div className="divide-y">
+                {items.data.records.map((item) => (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    onView={openView}
+                    onEdit={openEdit}
+                    onDelete={openDelete}
+                  />
+                ))}
               </div>
-              <h3 className="font-semibold text-lg mb-1">No items yet</h3>
-              <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-                Add your first item to get started. You can then list them for
-                auction.
-              </p>
-              <Button
-                onClick={openCreate}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-              >
-                <PlusIcon className="w-4 h-4" />
-                Add Your First Item
-              </Button>
-            </div>
-          )}
-        </Card>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <PackageIcon className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold text-lg mb-1">No items yet</h3>
+                <p className="text-sm text-muted-foreground mb-6 max-w-xs">
+                  Add your first item to get started. You can then list them for
+                  auction.
+                </p>
+                <Button
+                  onClick={openCreate}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  Add Your First Item
+                </Button>
+              </div>
+            )}
+          </Card>
+          <PaginationCustom
+            totalPages={items?.data.meta.totalPages ?? 1}
+            currentPage={items?.data.meta.page ?? 1}
+            onPageChange={(page) => {
+              console.log('Page changed to: ', page)
+            }}
+          />
+        </>
       )}
       <AppDialog />
     </section>
