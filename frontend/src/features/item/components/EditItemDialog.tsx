@@ -26,15 +26,18 @@ import {
 } from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
 import EditItemImageZone from '@/features/item/components/EditItemImageZone'
+import { Spinner } from '@/components/ui/spinner'
 
 interface EditItemDialogProps {
   item: Item
   onSubmit: (data: ItemUpdatePayload) => void
+  isLoading: boolean
 }
 
 export default function EditItemDialog({
   item,
   onSubmit,
+  isLoading,
 }: EditItemDialogProps) {
   const dispatch = useDispatch()
   const existingImages = item.images ?? []
@@ -172,7 +175,9 @@ export default function EditItemDialog({
           <Button
             type="submit"
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            disabled={isLoading}
           >
+            {isLoading && <Spinner />}
             Save Changes
           </Button>
         </DialogFooter>

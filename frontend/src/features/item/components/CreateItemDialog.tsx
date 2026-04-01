@@ -10,10 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDispatch } from 'react-redux'
 import { closeDialog } from '@/store/dialog.slice'
-import {
-  type CreateItemFormData,
-  createItemSchema,
-} from '../item.schemas'
+import { type CreateItemFormData, createItemSchema } from '../item.schemas'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import {
@@ -35,10 +32,13 @@ interface CreateItemDialogProps {
     description: string
     images: File[]
   }) => void
-  isPending: boolean
+  isLoading: boolean
 }
 
-export default function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps) {
+export default function CreateItemDialog({
+  onSubmit,
+  isLoading,
+}: CreateItemDialogProps) {
   const dispatch = useDispatch()
   const form = useForm<CreateItemFormData>({
     resolver: zodResolver(createItemSchema),
@@ -131,9 +131,9 @@ export default function CreateItemDialog({ onSubmit, isPending }: CreateItemDial
           <Button
             type="submit"
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            disabled={isPending}
+            disabled={isLoading}
           >
-            {isPending && <Spinner />}
+            {isLoading && <Spinner />}
             Add Item
           </Button>
         </DialogFooter>

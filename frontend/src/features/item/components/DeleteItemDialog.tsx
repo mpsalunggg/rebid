@@ -1,27 +1,30 @@
-"use client";
+'use client'
 
 import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { closeDialog } from "@/store/dialog.slice";
-import type { Item } from "@/features/item/item.type";
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { AlertTriangle } from 'lucide-react'
+import { useDispatch } from 'react-redux'
+import { closeDialog } from '@/store/dialog.slice'
+import type { Item } from '@/features/item/item.type'
+import { Spinner } from '@/components/ui/spinner'
 
 interface DeleteItemDialogProps {
-  item: Item;
-  onConfirm: () => void;
+  item: Item
+  onConfirm: () => void
+  isLoading: boolean
 }
 
 export default function DeleteItemDialog({
   item,
   onConfirm,
+  isLoading,
 }: DeleteItemDialogProps) {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
   return (
     <>
       <DialogHeader>
@@ -32,8 +35,8 @@ export default function DeleteItemDialog({
           <DialogTitle className="text-lg">Delete Item?</DialogTitle>
         </div>
         <DialogDescription className="text-sm leading-relaxed">
-          This action cannot be undone. The item{" "}
-          <span className="font-semibold text-foreground">"{item.name}"</span>{" "}
+          This action cannot be undone. The item{' '}
+          <span className="font-semibold text-foreground">"{item.name}"</span>{' '}
           and all its associated images will be permanently removed.
         </DialogDescription>
       </DialogHeader>
@@ -45,7 +48,11 @@ export default function DeleteItemDialog({
       </div>
 
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={() => dispatch(closeDialog())}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => dispatch(closeDialog())}
+        >
           Cancel
         </Button>
         <Button
@@ -53,10 +60,12 @@ export default function DeleteItemDialog({
           variant="destructive"
           onClick={onConfirm}
           className="bg-red-600 hover:bg-red-700"
+          disabled={isLoading}
         >
+          {isLoading && <Spinner />}
           Delete Item
         </Button>
       </DialogFooter>
     </>
-  );
+  )
 }

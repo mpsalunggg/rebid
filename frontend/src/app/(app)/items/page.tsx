@@ -102,7 +102,7 @@ export default function ItemsPage() {
       openDialog({
         id: 'item-create',
         component: (
-          <CreateItemDialog onSubmit={handleCreate} isPending={isCreating} />
+          <CreateItemDialog onSubmit={handleCreate} isLoading={isCreating} />
         ),
         maxWidth: 'max-w-lg',
       }),
@@ -118,6 +118,7 @@ export default function ItemsPage() {
             <EditItemDialog
               item={item}
               onSubmit={(data) => handleEdit(item.id, data)}
+              isLoading={isUpdating}
             />
           ),
           maxWidth: 'max-w-lg',
@@ -136,6 +137,7 @@ export default function ItemsPage() {
             <DeleteItemDialog
               item={item}
               onConfirm={() => handleDelete(item.id)}
+              isLoading={isDeleting}
             />
           ),
           maxWidth: 'max-w-md',
