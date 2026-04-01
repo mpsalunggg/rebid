@@ -13,57 +13,39 @@ import CreateItemDialog from '@/features/item/components/CreateItemDialog'
 import EditItemDialog from '@/features/item/components/EditItemDialog'
 import DeleteItemDialog from '@/features/item/components/DeleteItemDialog'
 import AppDialog from '@/components/common/AppDialog'
-import { useGetAllQuery, useDeleteItemMutation } from '@/features/item/item.api'
+import {
+  useGetAllQuery,
+  useDeleteItemMutation,
+  useCreateItemMutation,
+} from '@/features/item/item.api'
 import PaginationCustom from '@/components/common/PaginationCustom'
-
-const mockItems: Item[] = [
-  {
-    id: '1',
-    user_id: 'u1',
-    name: 'Vintage Camera',
-    description:
-      'A classic 35mm film camera from the 1970s, fully functional with original leather case and strap. Perfect for film photography enthusiasts.',
-    images: [],
-    created_at: '2026-03-20T10:00:00Z',
-    updated_at: '2026-03-25T10:00:00Z',
-  },
-  {
-    id: '2',
-    user_id: 'u1',
-    name: 'Mechanical Watch',
-    description:
-      'Swiss-made mechanical watch with sapphire crystal and exhibition caseback. Hand-wound movement, 42-hour power reserve.',
-    images: [],
-    created_at: '2026-03-18T08:00:00Z',
-    updated_at: '',
-  },
-  {
-    id: '3',
-    user_id: 'u1',
-    name: 'Signed Jersey',
-    description:
-      'Official match jersey signed by the entire 2024 championship team. Comes with certificate of authenticity.',
-    images: [],
-    created_at: '2026-03-15T14:00:00Z',
-    updated_at: '',
-  },
-]
+import { toast } from 'sonner'
+import { useQueryParams } from '@/hooks/useQueryParams'
 
 export default function ItemsPage() {
+  const { getParam, setParam } = useQueryParams()
+  const page = Number.parseInt(getParam('page', '1'), 10)
+  const limit = Number.parseInt(getParam('limit', '5'), 10)
   const dispatch = useDispatch()
-  const { data: items, isLoading } = useGetAllQuery({ page: 1, limit: 10 })
+  const { data: items, isLoading } = useGetAllQuery({ page, limit })
+  const [createItem, { isLoading: isCreating }] = useCreateItemMutation()
   const [deleteItem, { isLoading: isDeleting }] = useDeleteItemMutation()
-  // const [items, setItems] = useState<Item[]>(mockItems);
-
-  // console.log("[ITEMS] - ", items);
 
   const handleCreate = useCallback(
     (data: { name: string; description: string; images: File[] }) => {
-      console.log('[DATA CREATE] - ', data)
-
-      // dispatch(closeDialog());
+      createItem({ data })
+        .unwrap()
+        .then((response) => {
+          toast.success(response.message)
+        })
+        .catch((error) => {
+          toast.error(error.data.message)
+        })
+        .finally(() => {
+          dispatch(closeDialog())
+        })
     },
-    [dispatch],
+    [createItem],
   )
 
   const handleEdit = useCallback(
@@ -122,7 +104,9 @@ export default function ItemsPage() {
     dispatch(
       openDialog({
         id: 'item-create',
-        component: <CreateItemDialog onSubmit={handleCreate} />,
+        component: (
+          <CreateItemDialog onSubmit={handleCreate} isPending={isCreating} />
+        ),
         maxWidth: 'max-w-lg',
       }),
     )
@@ -191,8 +175,8 @@ export default function ItemsPage() {
           <p className="text-sm text-muted-foreground">Loading items...</p>
         </div>
       ) : (
-        <>
-          <Card className="border shadow-none py-0 overflow-hidden">
+        <section className="space-y-4 flex flex-col items-end">
+          <Card className="border shadow-none py-0 overflow-hidden w-full">
             {items?.data.records && items?.data.records.length > 0 ? (
               <div className="divide-y">
                 {items.data.records.map((item) => (
@@ -226,13 +210,11 @@ export default function ItemsPage() {
             )}
           </Card>
           <PaginationCustom
-            totalPages={items?.data.meta.totalPages ?? 1}
-            currentPage={items?.data.meta.page ?? 1}
-            onPageChange={(page) => {
-              console.log('Page changed to: ', page)
-            }}
+            totalPages={items?.data.meta.total_pages}
+            currentPage={items?.data.meta.page}
+            onPageChange={(next) => setParam('page', next)}
           />
-        </>
+        </section>
       )}
       <AppDialog />
     </section>

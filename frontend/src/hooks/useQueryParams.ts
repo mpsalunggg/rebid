@@ -17,8 +17,15 @@ export function useQueryParams() {
     getParam('page') => '1'
   */
   const getParam = useCallback(
-    (key: string) => {
-      return searchParams.get(key)
+    ((key: string, defaultValue?: string): string | null => {
+      const value = searchParams.get(key)
+      if (value === null || value === '') {
+        return defaultValue !== undefined ? defaultValue : null
+      }
+      return value
+    }) as {
+      (key: string): string | null
+      (key: string, defaultValue: string): string
     },
     [searchParams],
   )

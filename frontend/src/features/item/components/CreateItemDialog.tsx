@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
 import ImageDropzone from '@/components/common/ImageDropzone'
+import { Spinner } from '@/components/ui/spinner'
 
 interface CreateItemDialogProps {
   onSubmit: (data: {
@@ -34,9 +35,10 @@ interface CreateItemDialogProps {
     description: string
     images: File[]
   }) => void
+  isPending: boolean
 }
 
-export default function CreateItemDialog({ onSubmit }: CreateItemDialogProps) {
+export default function CreateItemDialog({ onSubmit, isPending }: CreateItemDialogProps) {
   const dispatch = useDispatch()
   const form = useForm<CreateItemFormData>({
     resolver: zodResolver(createItemSchema),
@@ -129,7 +131,9 @@ export default function CreateItemDialog({ onSubmit }: CreateItemDialogProps) {
           <Button
             type="submit"
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            disabled={isPending}
           >
+            {isPending && <Spinner />}
             Add Item
           </Button>
         </DialogFooter>

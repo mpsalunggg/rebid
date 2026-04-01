@@ -2,7 +2,7 @@ export type Meta = {
   page: number
   limit: number
   total: number
-  totalPages: number
+  total_pages: number
 }
 
 export type ApiResponse<T = unknown> = {
