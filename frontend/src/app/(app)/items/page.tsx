@@ -21,6 +21,7 @@ import {
 import PaginationCustom from '@/components/common/PaginationCustom'
 import { toast } from 'sonner'
 import { useQueryParams } from '@/hooks/useQueryParams'
+import PaginationControl from '@/components/common/PaginationControl'
 
 export default function ItemsPage() {
   const { getParam, setParam } = useQueryParams()
@@ -175,7 +176,7 @@ export default function ItemsPage() {
           <p className="text-sm text-muted-foreground">Loading items...</p>
         </div>
       ) : (
-        <section className="space-y-4 flex flex-col items-end">
+        <section className="space-y-4">
           <Card className="border shadow-none py-0 overflow-hidden w-full">
             {items?.data.records && items?.data.records.length > 0 ? (
               <div className="divide-y">
@@ -209,10 +210,9 @@ export default function ItemsPage() {
               </div>
             )}
           </Card>
-          <PaginationCustom
+          <PaginationControl
             totalPages={items?.data.meta.total_pages}
             currentPage={items?.data.meta.page}
-            onPageChange={(next) => setParam('page', next)}
           />
         </section>
       )}
