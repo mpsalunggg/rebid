@@ -21,7 +21,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func HandleAuctionWS(hub *Hub, cfg *config.Config, auctionRepo *repositories.AuctionRepository) http.HandlerFunc {
+func HandleAuctionWS(hub *Hub, cfg *config.Config, auctionRepo *repositories.AuctionRepository, bidRepo *repositories.BidRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		auctionIDStr := r.PathValue("id")
 		if auctionIDStr == "" {
@@ -34,12 +34,22 @@ func HandleAuctionWS(hub *Hub, cfg *config.Config, auctionRepo *repositories.Auc
 			return
 		}
 
-		token := r.URL.Query().Get("token")
-		if token == "" {
+		// token := r.URL.Query().Get("token")
+		// if token == "" {
+		// 	pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("token required"))
+		// 	return
+		// }
+		var tokenStr string
+		if c, err := r.Cookie(cfg.CookieName); err == nil {
+			tokenStr = c.Value
+		}
+
+		if tokenStr == "" {
 			pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("token required"))
 			return
 		}
-		claims, err := pkg.ParseToken(token, cfg.JWTSecret)
+
+		claims, err := pkg.ParseToken(tokenStr, cfg.JWTSecret)
 		if err != nil {
 			pkg.JSONResponse(w, http.StatusUnauthorized, pkg.ErrorResponse("invalid token"))
 			return
@@ -72,12 +82,20 @@ func HandleAuctionWS(hub *Hub, cfg *config.Config, auctionRepo *repositories.Auc
 			}
 		}
 
+		var bidsWithUser []dto.ResponseBidWithUser
+		if bidRepo != nil {
+			if bids, err := bidRepo.GetListBidByAuctionID(ctx, auctionID); err == nil {
+				bidsWithUser = bids
+			}
+		}
+
 		msg := SubscribedPayload{
 			Event:           "subscribed",
 			Change:          ChangeConnect,
 			Auction:         response,
 			CurrentPrice:    response.CurrentPrice,
 			CurrentBidderID: response.CurrentBidderID,
+			Bids:            bidsWithUser,
 		}
 		b, _ := json.Marshal(msg)
 		if err := conn.WriteMessage(websocket.TextMessage, b); err != nil {

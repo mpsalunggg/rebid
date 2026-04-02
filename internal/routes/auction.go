@@ -7,8 +7,15 @@ import (
 	"rebid/internal/websocket"
 )
 
-func SetupAuctionRoutes(router Router, cfg *config.Config, handler *handlers.Handler, hub *websocket.Hub, auctionRepo *repositories.AuctionRepository) {
+func SetupAuctionRoutes(
+	router Router,
+	cfg *config.Config,
+	handler *handlers.Handler,
+	hub *websocket.Hub,
+	auctionRepo *repositories.AuctionRepository,
+	bidRepo *repositories.BidRepository,
+) {
 	router.HandleFuncWithAuth(apiPath("/auctions"), handler.AuctionHandler, cfg)
 	router.HandleFuncWithAuth(apiPath("/auctions/{id}"), handler.AuctionByIDHandler, cfg)
-	router.HandleFunc(apiPath("/auctions/{id}/ws"), websocket.HandleAuctionWS(hub, cfg, auctionRepo))
+	router.HandleFunc(apiPath("/auctions/{id}/ws"), websocket.HandleAuctionWS(hub, cfg, auctionRepo, bidRepo))
 }

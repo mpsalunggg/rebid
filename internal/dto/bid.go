@@ -19,6 +19,11 @@ type ResponseBid struct {
 	CreatedAt string    `json:"created_at"`
 }
 
+type ResponseBidWithUser struct {
+	ResponseBid
+	User      UserDetailResponse `json:"user"`
+}
+
 func (r *CreateBidRequest) Validate() error {
 	if r.AuctionID == uuid.Nil {
 		return errors.New("auction ID is required")

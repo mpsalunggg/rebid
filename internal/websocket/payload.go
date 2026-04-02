@@ -15,9 +15,10 @@ type NewBidPayload struct {
 }
 
 type SubscribedPayload struct {
-	Event           string              `json:"event"`
-	Change          string              `json:"change"`
-	Auction         dto.ResponseAuction `json:"auction"`
-	CurrentPrice    float64             `json:"current_price"`
-	CurrentBidderID *uuid.UUID          `json:"current_bidder_id"`
+	Event           string                    `json:"event"`
+	Change          string                    `json:"change"`
+	Auction         dto.ResponseAuction       `json:"auction"`
+	CurrentPrice    float64                   `json:"current_price"`
+	CurrentBidderID *uuid.UUID                `json:"current_bidder_id"`
+	Bids            []dto.ResponseBidWithUser `json:"bids"`
 }

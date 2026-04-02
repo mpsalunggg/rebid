@@ -59,3 +59,12 @@ func (s *BidService) CreateBid(ctx context.Context, bid *dto.CreateBidRequest, u
 
 	return createdBid, nil
 }
+
+func (s *BidService) GetListBidByAuctionID(ctx context.Context, auctionID string) ([]dto.ResponseBidWithUser, error) {
+	auctionUUID, err := uuid.Parse(auctionID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid auction ID format: %w", err)
+	}
+
+	return s.repo.GetListBidByAuctionID(ctx, auctionUUID)
+}

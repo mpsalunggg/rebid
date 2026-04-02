@@ -75,7 +75,7 @@ func SetupRoutes(cfg *config.Config, db *sql.DB) Router {
 
 	SetupUserRoutes(router, cfg, handler)
 	SetupItemRoutes(router, cfg, handler)
-	SetupAuctionRoutes(router, cfg, handler, hub, auctionRepo)
+	SetupAuctionRoutes(router, cfg, handler, hub, auctionRepo, bidRepo)
 	SetupBidRoutes(router, cfg, handler)
 	return router
 }

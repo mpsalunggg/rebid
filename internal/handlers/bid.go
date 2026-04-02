@@ -51,6 +51,8 @@ func (h *Handler) CreateBid(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	bidsWithUser, err := h.bidService.GetListBidByAuctionID(ctx, auctionID)
+
 	if h.wsHub != nil {
 		// newBidPayload := websocket.NewBidPayload{
 		// 	Event: "new_bid",
@@ -66,6 +68,7 @@ func (h *Handler) CreateBid(w http.ResponseWriter, r *http.Request) {
 			Auction:         *auction,
 			CurrentPrice:    auction.CurrentPrice,
 			CurrentBidderID: auction.CurrentBidderID,
+			Bids:            bidsWithUser,
 		}
 
 		b2, _ := json.Marshal(subPayload)
