@@ -52,16 +52,17 @@ func (h *Handler) CreateBid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.wsHub != nil {
-		newBidPayload := websocket.NewBidPayload{
-			Event: "new_bid",
-			Bid:   *bid,
-		}
+		// newBidPayload := websocket.NewBidPayload{
+		// 	Event: "new_bid",
+		// 	Bid:   *bid,
+		// }
 
-		b, _ := json.Marshal(newBidPayload)
-		h.wsHub.BroadcastToAuction(bid.AuctionID, b)
+		// b, _ := json.Marshal(newBidPayload)
+		// h.wsHub.BroadcastToAuction(bid.AuctionID, b)
 
 		subPayload := websocket.SubscribedPayload{
 			Event:           "subscribed",
+			Change:          websocket.ChangeNewBid,
 			Auction:         *auction,
 			CurrentPrice:    auction.CurrentPrice,
 			CurrentBidderID: auction.CurrentBidderID,

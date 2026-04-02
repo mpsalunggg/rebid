@@ -6,6 +6,9 @@ import (
 	"github.com/google/uuid"
 )
 
+const ChangeConnect = "connect"
+const ChangeNewBid = "new_bid"
+
 type NewBidPayload struct {
 	Event string          `json:"event"`
 	Bid   dto.ResponseBid `json:"bid"`
@@ -13,6 +16,7 @@ type NewBidPayload struct {
 
 type SubscribedPayload struct {
 	Event           string              `json:"event"`
+	Change          string              `json:"change"`
 	Auction         dto.ResponseAuction `json:"auction"`
 	CurrentPrice    float64             `json:"current_price"`
 	CurrentBidderID *uuid.UUID          `json:"current_bidder_id"`
