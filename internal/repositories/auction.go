@@ -234,15 +234,38 @@ func (r *AuctionRepository) Update(ctx context.Context, auction *dto.UpdateAucti
 
 func (r *AuctionRepository) GetByID(ctx context.Context, auctionID uuid.UUID) (*dto.ResponseAuction, error) {
 	query := `
-		SELECT id, item_id, created_by, starting_price, current_price, start_time, end_time, current_bidder_id, status, created_at, updated_at
-		FROM auctions
-		WHERE id = $1
+		SELECT 
+			a.id, 
+			a.item_id, 
+			a.created_by, 
+			a.starting_price, 
+			a.current_price, 
+			a.start_time, 
+			a.end_time, 
+			a.current_bidder_id, 
+			a.status, 
+			a.created_at, 
+			a.updated_at,
+			u.name as created_by_name,
+			u.email as created_by_email,
+			i.id as item_id,
+			i.user_id,
+			i.name as item_name,
+			i.description as item_description,
+			i.created_at as item_created_at,
+			i.updated_at as item_updated_at
+		FROM auctions a
+		LEFT JOIN users u ON a.created_by = u.id
+		LEFT JOIN items i ON a.item_id = i.id
+		WHERE a.id = $1
 	`
 
 	var response dto.ResponseAuction
 	var (
 		createdAt time.Time
 		updatedAt time.Time
+		user      dto.UserDetailResponse
+		item      dto.ItemResponse
 	)
 
 	err := r.db.QueryRowContext(ctx, query, auctionID).Scan(
@@ -257,6 +280,14 @@ func (r *AuctionRepository) GetByID(ctx context.Context, auctionID uuid.UUID) (*
 		&response.Status,
 		&createdAt,
 		&updatedAt,
+		&user.Name,
+		&user.Email,
+		&item.ID,
+		&item.UserID,
+		&item.Name,
+		&item.Description,
+		&item.CreatedAt,
+		&item.UpdatedAt,
 	)
 
 	if err != nil {
@@ -268,6 +299,21 @@ func (r *AuctionRepository) GetByID(ctx context.Context, auctionID uuid.UUID) (*
 
 	response.CreatedAt = createdAt.Format(time.RFC3339)
 	response.UpdatedAt = updatedAt.Format(time.RFC3339)
+	response.User = user
+
+	item.Images = []dto.ItemImageResponse{}
+	if item.ID != "" {
+		itemUUID, err := uuid.Parse(item.ID)
+		if err == nil {
+			images, err := r.imageRepo.GetByItemID(itemUUID)
+			if err == nil {
+				item.Images = images
+			}
+		}
+		
+		response.Item = &item
+	}
+
 	return &response, nil
 }
 

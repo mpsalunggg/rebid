@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"rebid/internal/config"
 	"rebid/internal/dto"
 	"rebid/internal/repositories"
 	"rebid/pkg"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -46,7 +48,18 @@ func (s *AuctionService) GetAuctionByID(ctx context.Context, auctionID string) (
 		return nil, pkg.NewError("invalid auction ID format", http.StatusBadRequest)
 	}
 
-	return s.repo.GetByID(ctx, auctionUUID)
+	auction, err := s.repo.GetByID(ctx, auctionUUID)
+	if err != nil {
+		return nil, err
+	}
+	if auction.Item != nil {
+		baseURL := strings.TrimSuffix(s.config.BaseURL, "/")
+		for i := range auction.Item.Images {
+			path := strings.TrimPrefix(auction.Item.Images[i].URL, "/")
+			auction.Item.Images[i].URL = fmt.Sprintf("%s/%s", baseURL, path)
+		}
+	}
+	return auction, nil
 }
 
 func (s *AuctionService) DeleteAuction(ctx context.Context, auctionID string) error {
