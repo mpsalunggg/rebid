@@ -15,7 +15,14 @@ export const auctionApi = createApi({
       }),
       providesTags: ['Auction'],
     }),
+    getAuctionById: builder.query<ApiSuccessResponse<Auction>, string>({
+      query: (id) => ({
+        url: `/api/v1/auctions/${id}`,
+        method: 'GET',
+      }),
+      providesTags: ['Auction'],
+    }),
   }),
 })
 
-export const { useGetAuctionsQuery } = auctionApi
+export const { useGetAuctionsQuery, useGetAuctionByIdQuery } = auctionApi
