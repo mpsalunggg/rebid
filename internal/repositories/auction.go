@@ -25,18 +25,22 @@ func NewAuctionRepository(db *sql.DB, imageRepo *ItemImageRepository) *AuctionRe
 }
 func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuction) ([]dto.ResponseAuction, error) {
 	query := `
-			SELECT 
-					a.id, a.item_id, a.created_by, a.starting_price, a.current_price,
-					a.start_time, a.end_time, a.current_bidder_id,
-					a.status, a.created_at, a.updated_at,
-					i.id, i.user_id, i.name, i.description,
-					i.created_at, i.updated_at,
-					u.name, u.email
-			FROM auctions a
-			LEFT JOIN items i ON a.item_id = i.id
-			LEFT JOIN users u ON a.created_by = u.id
-			WHERE 1=1
-    `
+		SELECT 
+			a.id, a.item_id, a.created_by, a.starting_price, a.current_price,
+			a.start_time, 
+			a.end_time, 
+			a.current_bidder_id,
+			a.status, 
+			a.created_at as auction_created_at, 
+			a.updated_at as auction_updated_at,
+			i.id, i.user_id, i.name, i.description,
+			i.created_at as item_created_at, i.updated_at as item_updated_at,
+			u.name, u.email
+		FROM auctions a
+		LEFT JOIN items i ON a.item_id = i.id
+		LEFT JOIN users u ON a.created_by = u.id
+		WHERE 1=1
+	`
 
 	var args []interface{}
 	argPos := 1
@@ -65,7 +69,7 @@ func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuctio
 		argPos++
 	}
 
-	query += " ORDER BY a.start_time DESC"
+	query += " ORDER BY a.created_at DESC"
 
 	if filter.Limit > 0 {
 		query += fmt.Sprintf(" LIMIT %d", filter.Limit)
@@ -310,7 +314,7 @@ func (r *AuctionRepository) GetByID(ctx context.Context, auctionID uuid.UUID) (*
 				item.Images = images
 			}
 		}
-		
+
 		response.Item = &item
 	}
 
