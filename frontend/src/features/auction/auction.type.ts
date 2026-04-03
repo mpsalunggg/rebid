@@ -30,3 +30,21 @@ export interface UserDetail {
   name: string
   email: string
 }
+
+export interface Bid {
+  id: string
+  auction_id: string
+  user_id: string
+  amount: number
+  created_at: string
+  user: UserDetail
+}
+
+export interface AuctionWsMessage {
+  event: string
+  change: string
+  auction: Auction
+  current_price: number
+  current_bidder_id: string
+  bids: Bid[]
+}

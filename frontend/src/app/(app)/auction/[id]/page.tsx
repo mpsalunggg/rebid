@@ -20,8 +20,10 @@ import {
   Gavel,
   TrendingUp,
   User,
+  History,
 } from 'lucide-react'
 import CountdownTimer from '@/components/common/CountdownTimer'
+import { useAuctionWebSocket } from '@/features/auction/hooks/useAuctionWebSocket'
 
 export default function AuctionPage({
   params,
@@ -31,6 +33,7 @@ export default function AuctionPage({
   const { id } = use(params)
   const router = useRouter()
   const { data, isLoading, isError } = useGetAuctionByIdQuery(id)
+  const { data: wsData, bids } = useAuctionWebSocket(id)
 
   if (isLoading) return <AuctionDetailSkeleton />
 
@@ -47,7 +50,9 @@ export default function AuctionPage({
   }
 
   const auction = data.data
-  const priceDelta = auction.current_price - auction.starting_price
+  const priceDelta = wsData?.current_price
+    ? wsData.current_price - auction.starting_price
+    : 0
   const hasItem = !!auction.item
 
   return (
@@ -125,6 +130,49 @@ export default function AuctionPage({
               </div>
             </CardContent>
           </Card>
+
+          {bids.length > 0 && (
+            <Card className="border shadow-none">
+              <CardContent>
+                <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                  <History className="w-4 h-4" />
+                  Bid History
+                </h2>
+                <div className="space-y-3">
+                  {bids.map((bid, index) => (
+                    <div
+                      key={bid.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary shrink-0">
+                          {bid.user?.name?.charAt(0).toUpperCase() ?? '?'}
+                        </div>
+                        <div>
+                          <p className="font-medium leading-none">
+                            {bid.user?.name ?? 'Unknown'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {formatDateTime(bid.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-emerald-600 dark:text-emerald-400">
+                          {formatPrice(bid.amount)}
+                        </p>
+                        {index === 0 && (
+                          <span className="text-xs text-emerald-600 dark:text-emerald-400">
+                            Highest
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="lg:sticky lg:top-20 h-fit">
@@ -135,7 +183,7 @@ export default function AuctionPage({
                   Current Bid
                 </p>
                 <p className="text-3xl font-bold tracking-tight">
-                  {formatPrice(auction.current_price)}
+                  {formatPrice(wsData?.current_price ?? 0)}
                 </p>
                 {priceDelta > 0 && (
                   <div className="flex items-center gap-1 mt-1">
