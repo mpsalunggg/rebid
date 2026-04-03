@@ -1,8 +1,11 @@
 'use client'
 
-import { use } from 'react'
+import { use, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDispatch } from 'react-redux'
+import { openDialog } from '@/store/dialog.slice'
 import { useGetAuctionByIdQuery } from '@/features/auction/auction.api'
+import { useGetUserMeQuery } from '@/features/auth/auth.api'
 import { formatPrice } from '@/utils/price'
 import { formatDateTime, formatTimeAgo } from '@/utils/time'
 import { getStatusColor } from '@/features/auction/auction.constant'
@@ -10,7 +13,9 @@ import {
   AuctionImageCarousel,
   InfoRow,
   AuctionDetailSkeleton,
+  PlaceBidDialog,
 } from '@/features/auction/components'
+import AppDialog from '@/components/common/AppDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -32,12 +37,35 @@ export default function AuctionPage({
 }) {
   const { id } = use(params)
   const router = useRouter()
+  const dispatch = useDispatch()
   const { data, isLoading, isError } = useGetAuctionByIdQuery(id)
+  const { data: meData } = useGetUserMeQuery()
   const { data: wsData, bids } = useAuctionWebSocket(id)
+
+  const auction = data?.data
+  const currentPrice = wsData?.current_price ?? auction?.current_price ?? 0
+  const hasItem = !!auction?.item
+  const isOwner = !!meData?.data?.id && meData.data.id === auction?.created_by
+
+  const openBidDialog = useCallback(() => {
+    if (!auction) return
+    dispatch(
+      openDialog({
+        id: 'place-bid',
+        component: (
+          <PlaceBidDialog
+            auctionId={auction.id}
+            currentPrice={currentPrice}
+            itemName={hasItem ? auction.item.name : 'this auction'}
+          />
+        ),
+      }),
+    )
+  }, [dispatch, auction, currentPrice, hasItem])
 
   if (isLoading) return <AuctionDetailSkeleton />
 
-  if (isError || !data?.data) {
+  if (isError || !auction) {
     return (
       <div className="col-span-12 lg:col-span-9 text-center">
         <p className="text-muted-foreground text-sm">Auction not found.</p>
@@ -49,11 +77,7 @@ export default function AuctionPage({
     )
   }
 
-  const auction = data.data
-  const priceDelta = wsData?.current_price
-    ? wsData.current_price - auction.starting_price
-    : 0
-  const hasItem = !!auction.item
+  const priceDelta = currentPrice - auction.starting_price
 
   return (
     <div className="space-y-4 col-span-12 lg:col-span-9">
@@ -183,7 +207,7 @@ export default function AuctionPage({
                   Current Bid
                 </p>
                 <p className="text-3xl font-bold tracking-tight">
-                  {formatPrice(wsData?.current_price ?? 0)}
+                  {formatPrice(currentPrice)}
                 </p>
                 {priceDelta > 0 && (
                   <div className="flex items-center gap-1 mt-1">
@@ -203,7 +227,7 @@ export default function AuctionPage({
                   </span>
                 </div>
 
-                {auction.current_bidder_id && (
+                {(wsData?.current_bidder_id ?? auction.current_bidder_id) && (
                   <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
                     Active bidder
@@ -211,27 +235,40 @@ export default function AuctionPage({
                 )}
               </div>
 
-              <Button
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-                size="lg"
-                disabled={auction.status !== 'ACTIVE'}
-              >
-                <Gavel className="w-4 h-4 mr-2" />
-                {auction.status === 'ACTIVE'
-                  ? 'Place Bid'
-                  : 'Bidding Unavailable'}
-              </Button>
+              {!isOwner && (
+                <>
+                  <Button
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                    size="lg"
+                    disabled={auction.status !== 'ACTIVE'}
+                    onClick={openBidDialog}
+                  >
+                    <Gavel className="w-4 h-4 mr-2" />
+                    {auction.status === 'ACTIVE'
+                      ? 'Place Bid'
+                      : 'Bidding Unavailable'}
+                  </Button>
 
-              {auction.status !== 'ACTIVE' && (
-                <p className="text-xs text-center text-muted-foreground">
-                  This auction is{' '}
-                  <span className="lowercase">{auction.status}</span>
+                  {auction.status !== 'ACTIVE' && (
+                    <p className="text-xs text-center text-muted-foreground">
+                      This auction is{' '}
+                      <span className="lowercase">{auction.status}</span>
+                    </p>
+                  )}
+                </>
+              )}
+
+              {isOwner && (
+                <p className="text-xs text-center text-muted-foreground border rounded-md py-2 px-3">
+                  You cannot bid on your own auction.
                 </p>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <AppDialog />
     </div>
   )
 }

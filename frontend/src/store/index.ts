@@ -4,6 +4,7 @@ import dialogReducer from './dialog.slice'
 import { authApi } from '@/features/auth/auth.api'
 import { auctionApi } from '@/features/auction/auction.api'
 import { itemApi } from '@/features/item/item.api'
+import { bidApi } from '@/features/bid/bid.api'
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [auctionApi.reducerPath]: auctionApi.reducer,
     [itemApi.reducerPath]: itemApi.reducer,
+    [bidApi.reducerPath]: bidApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -19,7 +21,7 @@ export const store = configureStore({
         ignoredActions: ['dialog/openDialog'],
         ignoredPaths: ['dialog.component'],
       },
-    }).concat(authApi.middleware, auctionApi.middleware, itemApi.middleware),
+    }).concat(authApi.middleware, auctionApi.middleware, itemApi.middleware, bidApi.middleware),
 })
 
 export type RootState = ReturnType<typeof store.getState>
