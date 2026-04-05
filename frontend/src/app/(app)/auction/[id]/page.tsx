@@ -27,6 +27,7 @@ import {
   History,
 } from 'lucide-react'
 import CountdownTimer from '@/components/common/CountdownTimer'
+import CardBidWin from '@/features/auction/components/CardBidWin'
 
 export default function AuctionPage({
   params,
@@ -197,7 +198,7 @@ export default function AuctionPage({
           )}
         </div>
 
-        <div className="lg:sticky lg:top-20 h-fit">
+        <div className="lg:sticky lg:top-20 space-y-5 h-fit">
           <Card className="border shadow-none">
             <CardContent className="space-y-4">
               <div>
@@ -263,6 +264,10 @@ export default function AuctionPage({
               )}
             </CardContent>
           </Card>
+
+          {auction.status === 'ENDED' && bids.length > 0 && (
+            <CardBidWin bid={bids[0]} />
+          )}
         </div>
       </div>
     </div>
