@@ -70,3 +70,7 @@ func (s *AuctionService) DeleteAuction(ctx context.Context, auctionID string) er
 
 	return s.repo.Delete(ctx, auctionUUID)
 }
+
+func (s *AuctionService) CloseExpiredAuctions(ctx context.Context) ([]uuid.UUID, error) {
+	return s.repo.CloseExpiredAuctions(ctx)
+}

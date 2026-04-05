@@ -8,6 +8,7 @@ import (
 
 const ChangeConnect = "connect"
 const ChangeNewBid = "new_bid"
+const ChangeAuctionEnded = "auction_ended"
 
 type NewBidPayload struct {
 	Event string          `json:"event"`

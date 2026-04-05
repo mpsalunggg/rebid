@@ -7,6 +7,7 @@ import (
 	"rebid/internal/config"
 	"rebid/internal/dto"
 	"rebid/internal/repositories"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -28,12 +29,20 @@ func NewBidService(cfg *config.Config, db *sql.DB, repo *repositories.BidReposit
 }
 
 func (s *BidService) CreateBid(ctx context.Context, bid *dto.CreateBidRequest, userID uuid.UUID) (*dto.ResponseBid, error) {
-	currentPrice, err := s.auctionRepo.GetCurrentPrice(ctx, bid.AuctionID)
+	eligibility, err := s.auctionRepo.GetAuctionForBid(ctx, bid.AuctionID)
 	if err != nil {
 		return nil, err
 	}
 
-	if currentPrice.Amount >= bid.Amount {
+	if eligibility.Status != "ACTIVE" {
+		return nil, fmt.Errorf("auction is not active")
+	}
+
+	if time.Now().UTC().After(eligibility.EndTime.UTC()) {
+		return nil, fmt.Errorf("auction has already ended")
+	}
+
+	if eligibility.CurrentPrice >= bid.Amount {
 		return nil, fmt.Errorf("bid amount must be greater than current price")
 	}
 

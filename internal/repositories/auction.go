@@ -363,3 +363,48 @@ func (r *AuctionRepository) UpdateCurrentPriceWithBidder(ctx context.Context, tx
 	_, err := tx.ExecContext(ctx, q, amount, bidderID, auctionID)
 	return err
 }
+
+func (r *AuctionRepository) CloseExpiredAuctions(ctx context.Context) ([]uuid.UUID, error) {
+	const q = `
+		UPDATE auctions
+		SET status = 'ENDED', updated_at = NOW()
+		WHERE status = 'ACTIVE' AND end_time <= NOW()
+		RETURNING id
+	`
+
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("close expired auctions: %w", err)
+	}
+	defer rows.Close()
+
+	var ids []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("close expired auctions scan: %w", err)
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
+type AuctionBidEligibility struct {
+	CurrentPrice float64
+	Status       string
+	EndTime      time.Time
+}
+
+func (r *AuctionRepository) GetAuctionForBid(ctx context.Context, auctionID uuid.UUID) (*AuctionBidEligibility, error) {
+	const q = `SELECT current_price, status, end_time FROM auctions WHERE id = $1`
+
+	var e AuctionBidEligibility
+	err := r.db.QueryRowContext(ctx, q, auctionID).Scan(&e.CurrentPrice, &e.Status, &e.EndTime)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("auction not found")
+		}
+		return nil, fmt.Errorf("get auction for bid: %w", err)
+	}
+	return &e, nil
+}

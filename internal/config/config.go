@@ -32,6 +32,8 @@ type Config struct {
 	GoogleClientID     string
 	GoogleClientSecret string
 	GoogleRedirectURI  string
+	// worker
+	AuctionCloserCron string
 }
 
 func (c *Config) DBConnectionString() string {
@@ -71,6 +73,7 @@ func Load() (*Config, error) {
 		GoogleClientID:       getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret:   getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GoogleRedirectURI:    getEnv("GOOGLE_REDIRECT_URI", "http://localhost:8080/api/v1/auth/google/callback"),
+		AuctionCloserCron:    getEnv("AUCTION_CLOSER_CRON", "0 * * * * *"),
 	}
 
 	return config, nil

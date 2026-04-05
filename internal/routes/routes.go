@@ -1,20 +1,17 @@
 package routes
 
 import (
-	"database/sql"
 	"net/http"
+	"rebid/internal/bootstrap"
 	"rebid/internal/config"
 	"rebid/internal/handlers"
 	"rebid/internal/middleware"
-	"rebid/internal/repositories"
-	"rebid/internal/services"
-	"rebid/internal/websocket"
 )
 
 type Router interface {
 	HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request))
 	HandleFuncWithAuth(pattern string, handler func(http.ResponseWriter, *http.Request), cfg *config.Config)
-	Listen(addr string) error
+	Handler() http.Handler
 }
 
 type SimpleRouter struct {
@@ -40,9 +37,8 @@ func (r *SimpleRouter) HandleFuncWithAuth(pattern string, handler func(http.Resp
 	r.mux.Handle(pattern, protectedHandler)
 }
 
-func (r *SimpleRouter) Listen(addr string) error {
-	corsHandler := middleware.CORS(r.cfg)
-	return http.ListenAndServe(addr, corsHandler(r.mux))
+func (r *SimpleRouter) Handler() http.Handler {
+	return middleware.CORS(r.cfg)(r.mux)
 }
 
 const version = "/api/v1"
@@ -51,22 +47,10 @@ func apiPath(path string) string {
 	return version + path
 }
 
-func SetupRoutes(cfg *config.Config, db *sql.DB) Router {
+func SetupRoutes(cfg *config.Config, deps *bootstrap.Dependencies) Router {
 	router := NewRouter(cfg)
-	hub := websocket.NewHub()
 
-	itemImageRepo := repositories.NewItemImageRepository(db)
-	userRepo := repositories.NewUserRepository(db)
-	itemRepo := repositories.NewItemRepository(db, itemImageRepo)
-	auctionRepo := repositories.NewAuctionRepository(db, itemImageRepo)
-	bidRepo := repositories.NewBidRepository(db)
-
-	userService := services.NewUserService(cfg, userRepo)
-	itemService := services.NewItemService(cfg, itemRepo, itemImageRepo)
-	auctionService := services.NewAuctionService(cfg, auctionRepo)
-	bidService := services.NewBidService(cfg, db, bidRepo, auctionRepo)
-
-	handler := handlers.NewHandler(cfg, hub, userService, itemService, auctionService, bidService)
+	handler := handlers.NewHandler(cfg, deps.Hub, deps.UserService, deps.ItemService, deps.AuctionService, deps.BidService)
 
 	router.HandleFunc("/health", handler.HealthCheck)
 	router.HandleFunc("/uploads/", func(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +59,7 @@ func SetupRoutes(cfg *config.Config, db *sql.DB) Router {
 
 	SetupUserRoutes(router, cfg, handler)
 	SetupItemRoutes(router, cfg, handler)
-	SetupAuctionRoutes(router, cfg, handler, hub, auctionRepo, bidRepo)
+	SetupAuctionRoutes(router, cfg, handler, deps.Hub, deps.AuctionRepo, deps.BidRepo)
 	SetupBidRoutes(router, cfg, handler)
 	return router
 }
