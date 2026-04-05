@@ -48,3 +48,8 @@ export interface AuctionWsMessage {
   current_bidder_id: string
   bids: Bid[]
 }
+
+export interface AuctionDetail {
+  auction: Auction
+  bids: Bid[]
+}

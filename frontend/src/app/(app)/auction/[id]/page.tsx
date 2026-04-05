@@ -27,7 +27,6 @@ import {
   History,
 } from 'lucide-react'
 import CountdownTimer from '@/components/common/CountdownTimer'
-import { useAuctionWebSocket } from '@/features/auction/hooks/useAuctionWebSocket'
 
 export default function AuctionPage({
   params,
@@ -39,10 +38,10 @@ export default function AuctionPage({
   const dispatch = useDispatch()
   const { data, isLoading, isError } = useGetAuctionByIdQuery(id)
   const { data: meData } = useGetUserMeQuery()
-  const { data: wsData, bids } = useAuctionWebSocket(id)
 
-  const auction = data?.data
-  const currentPrice = wsData?.current_price ?? auction?.current_price ?? 0
+  const auction = data?.auction
+  const bids = data?.bids ?? []
+  const currentPrice = auction?.current_price ?? 0
   const hasItem = !!auction?.item
   const isOwner = !!meData?.data?.id && meData.data.id === auction?.created_by
 
@@ -226,7 +225,7 @@ export default function AuctionPage({
                   </span>
                 </div>
 
-                {(wsData?.current_bidder_id ?? auction.current_bidder_id) && (
+                {auction.current_bidder_id && (
                   <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
                     Active bidder
