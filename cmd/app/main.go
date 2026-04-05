@@ -39,7 +39,13 @@ func RunServer() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	worker.StartAuctionCloser(ctx, cfg.AuctionCloserCron, deps.AuctionService, deps.Hub)
+	worker.StartAuctionCloser(
+		ctx,
+		cfg.AuctionCloserCron,
+		deps.AuctionService,
+		deps.BidService,
+		deps.Hub,
+	)
 
 	router := routes.SetupRoutes(cfg, deps)
 
@@ -54,7 +60,7 @@ func RunServer() {
 	go func() {
 		<-quit
 		log.Println("Shutdown signal received, stopping worker and server...")
-		cancel() 
+		cancel()
 
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer shutdownCancel()

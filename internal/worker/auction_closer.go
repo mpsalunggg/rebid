@@ -17,17 +17,18 @@ func StartAuctionCloser(
 	d context.Context,
 	cronExpr string,
 	auctionSvc *services.AuctionService,
+	bidSvc *services.BidService,
 	hub *websocket.Hub,
 ) {
 	c := cron.New(cron.WithSeconds())
 
 	_, err := c.AddFunc(cronExpr, func() {
-		runClose(auctionSvc, hub)
+		runClose(auctionSvc, bidSvc, hub)
 	})
 	if err != nil {
 		log.Printf("auction closer: invalid cron expression %q: %v — falling back to %s", cronExpr, err, defaultCronExpr)
 		c.AddFunc(defaultCronExpr, func() {
-			runClose(auctionSvc, hub)
+			runClose(auctionSvc, bidSvc, hub)
 		})
 	}
 
@@ -43,7 +44,7 @@ func StartAuctionCloser(
 	}()
 }
 
-func runClose(auctionSvc *services.AuctionService, hub *websocket.Hub) {
+func runClose(auctionSvc *services.AuctionService, bidSvc *services.BidService, hub *websocket.Hub) {
 	closedIDs, err := auctionSvc.CloseExpiredAuctions(context.Background())
 	if err != nil {
 		log.Printf("auction closer: error closing expired auctions: %v", err)
@@ -54,23 +55,43 @@ func runClose(auctionSvc *services.AuctionService, hub *websocket.Hub) {
 	}
 
 	log.Printf("auction closer: closed %d auction(s)", len(closedIDs))
-	broadcastEnded(hub, closedIDs)
+	broadcastEnded(auctionSvc, bidSvc, hub, closedIDs)
 }
 
-func broadcastEnded(hub *websocket.Hub, ids []uuid.UUID) {
-	payload := struct {
-		Event  string `json:"event"`
-		Change string `json:"change"`
-	}{
-		Event:  "subscribed",
-		Change: websocket.ChangeAuctionEnded,
-	}
-	b, err := json.Marshal(payload)
-	if err != nil {
-		log.Printf("auction closer: marshal broadcast payload: %v", err)
-		return
-	}
+func broadcastEnded(
+	auctionSvc *services.AuctionService,
+	bidSvc *services.BidService,
+	hub *websocket.Hub,
+	ids []uuid.UUID,
+) {
+	ctx := context.Background()
 	for _, id := range ids {
+		auction, err := auctionSvc.GetAuctionByID(ctx, id.String())
+		if err != nil {
+			log.Printf("auction closer: get auction %s: %v", id, err)
+			continue
+		}
+
+		bids, err := bidSvc.GetListBidByAuctionID(ctx, id.String())
+		if err != nil {
+			log.Printf("auction closer: get bids %s: %v", id, err)
+			continue
+		}
+
+		payload := websocket.SubscribedPayload{
+			Event:           "subscribed",
+			Change:          websocket.ChangeAuctionEnded,
+			Auction:         *auction,
+			CurrentPrice:    auction.CurrentPrice,
+			CurrentBidderID: auction.CurrentBidderID,
+			Bids:            bids,
+		}
+
+		b, err := json.Marshal(payload)
+		if err != nil {
+			log.Printf("auction closer: marshal payload %s: %v", id, err)
+			continue
+		}
 		hub.BroadcastToAuction(id, b)
 	}
 }
