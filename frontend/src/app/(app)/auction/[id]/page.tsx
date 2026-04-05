@@ -15,7 +15,6 @@ import {
   AuctionDetailSkeleton,
   PlaceBidDialog,
 } from '@/features/auction/components'
-import AppDialog from '@/components/common/AppDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -267,8 +266,6 @@ export default function AuctionPage({
           </Card>
         </div>
       </div>
-
-      <AppDialog />
     </div>
   )
 }

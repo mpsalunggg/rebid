@@ -13,7 +13,6 @@ import ItemDetailDialog from '@/features/item/components/ItemDetailDialog'
 import CreateItemDialog from '@/features/item/components/CreateItemDialog'
 import EditItemDialog from '@/features/item/components/EditItemDialog'
 import DeleteItemDialog from '@/features/item/components/DeleteItemDialog'
-import AppDialog from '@/components/common/AppDialog'
 import {
   useGetAllQuery,
   useDeleteItemMutation,
@@ -214,7 +213,6 @@ export default function ItemsPage() {
           />
         </section>
       )}
-      <AppDialog />
     </section>
   )
 }

@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import EmptyAuctionState from "@/features/auction/components/EmptyAuctionState";
 import AuctionCardSkeleton from "@/features/auction/components/AuctionCardSkeleton";
 import AuctionCard from "@/features/auction/components/AuctionCard";
-import AppDialog from "@/components/common/AppDialog";
 import CreateAuctionDialog from "@/features/auction/components/CreateAuctionDialog";
 import { openDialog } from "@/store/dialog.slice";
 import { useCallback } from "react";
@@ -78,8 +77,6 @@ export default function HomePage() {
         ) : (
           <EmptyAuctionState />
         )}
-
-        <AppDialog />
       </main>
 
       <aside className="col-span-12 lg:col-span-4">
