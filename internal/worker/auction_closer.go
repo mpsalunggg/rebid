@@ -79,7 +79,7 @@ func broadcastEnded(
 		}
 
 		payload := websocket.SubscribedPayload{
-			Event:           "subscribed",
+			Event:           "auction",
 			Change:          websocket.ChangeAuctionEnded,
 			Auction:         *auction,
 			CurrentPrice:    auction.CurrentPrice,

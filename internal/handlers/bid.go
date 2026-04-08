@@ -63,7 +63,7 @@ func (h *Handler) CreateBid(w http.ResponseWriter, r *http.Request) {
 		// h.wsHub.BroadcastToAuction(bid.AuctionID, b)
 
 		subPayload := websocket.SubscribedPayload{
-			Event:           "subscribed",
+			Event:           "auction",
 			Change:          websocket.ChangeNewBid,
 			Auction:         *auction,
 			CurrentPrice:    auction.CurrentPrice,

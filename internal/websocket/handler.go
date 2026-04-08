@@ -90,7 +90,7 @@ func HandleAuctionWS(hub *Hub, cfg *config.Config, auctionRepo *repositories.Auc
 		}
 
 		msg := SubscribedPayload{
-			Event:           "subscribed",
+			Event:           "auction",
 			Change:          ChangeConnect,
 			Auction:         response,
 			CurrentPrice:    response.CurrentPrice,
