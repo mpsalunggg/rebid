@@ -4,18 +4,11 @@ import { type ReactNode } from 'react'
 import { useSelector } from 'react-redux'
 import { LeftNav } from './App/LeftNav'
 import { TopBar } from './App/TopBar'
-import { RightSidebar } from './App/RightSidebar'
 import ParticleLayout from './ParticleLayout'
 import { RootState } from '@/store'
 import { useGetUserMeQuery } from '@/features/auth/auth.api'
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const { user } = useSelector((state: RootState) => state.auth)
-  useGetUserMeQuery(undefined, {
-    refetchOnMountOrArgChange: false,
-    skip: !!user,
-  })
-
   return (
     <ParticleLayout>
       <div className="relative z-10 min-h-dvh w-full">

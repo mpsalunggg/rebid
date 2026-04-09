@@ -1,3 +1,5 @@
+export const AUCTION_WS_CHANGE_ENDED = 'auction_ended'
+
 export function getStatusColor(status: string) {
 	switch (status) {
 		case "ACTIVE":

@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authReducer from '@/features/auth/auth.slice'
 import dialogReducer from './dialog.slice'
+import celebrationReducer from './celebration.slice'
 import { authApi } from '@/features/auth/auth.api'
 import { auctionApi } from '@/features/auction/auction.api'
 import { itemApi } from '@/features/item/item.api'
@@ -10,6 +11,7 @@ export const store = configureStore({
   reducer: {
     auth: authReducer,
     dialog: dialogReducer,
+    celebration: celebrationReducer,
     [authApi.reducerPath]: authApi.reducer,
     [auctionApi.reducerPath]: auctionApi.reducer,
     [itemApi.reducerPath]: itemApi.reducer,

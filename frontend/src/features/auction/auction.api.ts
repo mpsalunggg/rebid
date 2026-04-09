@@ -3,6 +3,9 @@ import { customBaseQuery } from '@/lib/baseQuery'
 import type { ApiSuccessResponse } from '@/lib/response'
 import type { Auction, AuctionDetail, AuctionWsMessage } from './auction.type'
 import { getWebSocketUrl } from '@/utils/wsUrl'
+import { CreateAuctionFormData } from './auction.schema'
+import { AUCTION_WS_CHANGE_ENDED } from './auction.constant'
+import { triggerAuctionEndedConfetti } from '@/store/celebration.slice'
 
 export const auctionApi = createApi({
   reducerPath: 'auctionApi',
@@ -41,13 +44,27 @@ export const auctionApi = createApi({
               draft.bids = msg.bids
             }
           })
+          if (msg.change === AUCTION_WS_CHANGE_ENDED) {
+            api.dispatch(triggerAuctionEndedConfetti())
+          }
         }
 
         await api.cacheEntryRemoved
         ws.close()
       },
     }),
+    createAuction: builder.mutation<
+      ApiSuccessResponse<Auction>,
+      CreateAuctionFormData
+    >({
+      query: (data) => ({
+        url: '/api/v1/auctions',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Auction'],
+    }),
   }),
 })
 
-export const { useGetAuctionsQuery, useGetAuctionByIdQuery } = auctionApi
+export const { useGetAuctionsQuery, useGetAuctionByIdQuery, useCreateAuctionMutation } = auctionApi

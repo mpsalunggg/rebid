@@ -2,6 +2,7 @@ import { Item } from '../item/item.type'
 
 export interface Auction {
   id: string
+  description: string
   created_by: string
   item_id: string
   item: Item

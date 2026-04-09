@@ -43,7 +43,7 @@ export default function AuctionCard({ auction }: { auction: Auction }) {
         </div>
 
         <p className="text-sm mb-4 text-foreground">
-          {auction.item.description}
+          {auction.description}
         </p>
 
         <BentoGridImages images={auction.item.images} />
