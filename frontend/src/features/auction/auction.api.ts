@@ -24,6 +24,7 @@ export const auctionApi = createApi({
         url: `/api/v1/auctions/${id}`,
         method: 'GET',
       }),
+      keepUnusedDataFor: 0,
       transformResponse: (res: ApiSuccessResponse<Auction>): AuctionDetail => ({
         auction: res.data,
         bids: [],
