@@ -26,7 +26,7 @@ func NewAuctionRepository(db *sql.DB, imageRepo *ItemImageRepository) *AuctionRe
 func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuction) ([]dto.ResponseAuction, error) {
 	query := `
 		SELECT 
-			a.id, a.item_id, a.created_by, a.starting_price, a.current_price,
+			a.id, a.item_id, a.description, a.created_by, a.starting_price, a.current_price,
 			a.start_time, 
 			a.end_time, 
 			a.current_bidder_id,
@@ -98,6 +98,7 @@ func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuctio
 		err := rows.Scan(
 			&res.ID,
 			&res.ItemID,
+			&res.Description,
 			&res.CreatedBy,
 			&res.StartingPrice,
 			&res.CurrentPrice,
@@ -155,9 +156,9 @@ func (r *AuctionRepository) GetAll(ctx context.Context, filter *dto.FilterAuctio
 
 func (r *AuctionRepository) Create(ctx context.Context, auction *dto.CreateAuctionRequest, userID uuid.UUID) (*dto.ResponseAuction, error) {
 	query := `
-    INSERT INTO auctions (id, item_id, created_by, starting_price, current_price, start_time, end_time, status, created_at, updated_at)
-    VALUES (gen_random_uuid(), $1, $2, $3, $3, $4, $5, $6, NOW(), NOW())
-    RETURNING id, item_id, created_by, starting_price, current_price, start_time, end_time, current_bidder_id, status, created_at, updated_at
+    INSERT INTO auctions (id, item_id, description, created_by, starting_price, current_price, start_time, end_time, status, created_at, updated_at)
+    VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+    RETURNING id, item_id, description, created_by, starting_price, current_price, start_time, end_time, current_bidder_id, status, created_at, updated_at
 `
 
 	var response dto.ResponseAuction
@@ -166,9 +167,10 @@ func (r *AuctionRepository) Create(ctx context.Context, auction *dto.CreateAucti
 		updatedAt time.Time
 	)
 
-	err := r.db.QueryRowContext(ctx, query, auction.ItemID, userID, auction.StartingPrice, auction.StartTime, auction.EndTime, auction.Status).Scan(
+	err := r.db.QueryRowContext(ctx, query, auction.ItemID, auction.Description, userID, auction.StartingPrice, auction.StartingPrice, auction.StartTime, auction.EndTime, auction.Status).Scan(
 		&response.ID,
 		&response.ItemID,
+		&response.Description,
 		&response.CreatedBy,
 		&response.StartingPrice,
 		&response.CurrentPrice,
@@ -241,6 +243,7 @@ func (r *AuctionRepository) GetByID(ctx context.Context, auctionID uuid.UUID) (*
 		SELECT 
 			a.id, 
 			a.item_id, 
+			a.description,
 			a.created_by, 
 			a.starting_price, 
 			a.current_price, 
@@ -275,6 +278,7 @@ func (r *AuctionRepository) GetByID(ctx context.Context, auctionID uuid.UUID) (*
 	err := r.db.QueryRowContext(ctx, query, auctionID).Scan(
 		&response.ID,
 		&response.ItemID,
+		&response.Description,
 		&response.CreatedBy,
 		&response.StartingPrice,
 		&response.CurrentPrice,

@@ -11,6 +11,7 @@ import (
 
 type CreateAuctionRequest struct {
 	ItemID        uuid.UUID `json:"item_id"`
+	Description   string    `json:"description"`
 	StartingPrice float64   `json:"starting_price"`
 	StartTime     time.Time `json:"start_time"`
 	EndTime       time.Time `json:"end_time"`
@@ -26,6 +27,7 @@ type UpdateAuctionRequest struct {
 
 type ResponseAuction struct {
 	ID              uuid.UUID          `json:"id"`
+	Description     *string            `json:"description"`
 	CreatedBy       uuid.UUID          `json:"created_by"`
 	User            UserDetailResponse `json:"user"`
 	ItemID          uuid.UUID          `json:"item_id"`
@@ -77,6 +79,9 @@ func (r *CreateAuctionRequest) Validate() error {
 	}
 	if r.StartingPrice <= 0 {
 		return errors.New("starting price must be greater than 0")
+	}
+	if r.Description == "" {
+		return errors.New("description is required")
 	}
 	if r.StartTime.IsZero() {
 		return errors.New("start time is required")

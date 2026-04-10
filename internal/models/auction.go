@@ -25,6 +25,7 @@ type Auction struct {
 	EndTime         time.Time     `json:"end_time" db:"end_time"`
 	CurrentBidderID *uuid.UUID    `json:"current_bidder_id,omitempty" db:"current_bidder_id"`
 	Status          AuctionStatus `json:"status" db:"status"`
+	Description     string        `json:"description" db:"description"`
 	CreatedAt       time.Time     `json:"created_at" db:"created_at"`
 	UpdatedAt       *time.Time    `json:"updated_at,omitempty" db:"updated_at"`
 }

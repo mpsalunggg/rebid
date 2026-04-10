@@ -1,0 +1,1 @@
+ALTER TABLE auctions ADD COLUMN description TEXT NULL;
