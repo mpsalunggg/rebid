@@ -22,7 +22,7 @@ function getMessage(err: FetchBaseQueryError): string {
 	if ("error" in err && typeof err.error === "string") return err.error;
 	return "Something went wrong";
 }
-q
+
 export const customBaseQuery: BaseQueryFn<
 	FetchArgs,
 	unknown,
