@@ -172,7 +172,7 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        <div className="mt-16 flex flex-wrap items-center justify-center gap-8 border-t border-border pt-10">
+        {/* <div className="mt-16 flex flex-wrap items-center justify-center gap-8 border-t border-border pt-10">
           {[
             { icon: Gavel, value: '2,400+', label: 'Lelang Aktif' },
             { icon: TrendingUp, value: 'Rp 4.8M', label: 'Total Volume Bid' },
@@ -188,7 +188,7 @@ export default function LandingPage() {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Marquee auction cards */}
         <div className="mt-16 w-full">
