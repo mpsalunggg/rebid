@@ -10,6 +10,7 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules', '.next'],
     css: true,
+    setupFiles: ['./src/test/msw.ts'],
   },
   resolve: {
     alias: {
