@@ -1,12 +1,14 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { MainTabs } from './MainTabs';
+import { useAuth } from '@/context/AuthContext';
 import LoginScreen from '@/features/auth/screens/LoginScreen';
+import { MainTabs } from './MainTabs';
 
-// nanti: isLoggedIn dari Context / Zustand / token di AsyncStorage
 const Stack = createNativeStackNavigator();
 
-export function RootNavigator({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function RootNavigator() {
+  const { isLoggedIn } = useAuth();
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
