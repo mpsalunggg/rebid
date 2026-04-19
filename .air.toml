@@ -4,7 +4,7 @@ tmp_dir = "bin"
 [build]
 cmd = "make build"
 bin = "bin/rebid"
-exclude_dir = ["bin", "frontend"]
+exclude_dir = ["bin", "frontend", "mobile", ".git", "tmp"]
 
 [run]
 cmd = "./bin/rebid"
