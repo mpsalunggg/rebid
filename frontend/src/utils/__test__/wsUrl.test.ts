@@ -22,4 +22,10 @@ describe('getWebSocketUrl', () => {
     vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://127.0.0.1:3001')
     expect(getWebSocketUrl('socket')).toBe('ws://127.0.0.1:3001/socket')
   })
+
+  it('uses default base when env is not set', () => {
+    vi.unstubAllEnvs()
+
+    expect(getWebSocketUrl('/ws')).toBe('ws://localhost:8080/ws')
+  })
 })

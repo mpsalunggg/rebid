@@ -11,6 +11,19 @@ export default defineConfig({
     exclude: ['node_modules', '.next'],
     css: true,
     setupFiles: ['./src/test/msw.ts'],
+    coverage: {
+      provider: 'v8',
+      // include: ['src/**/*.{ts,tsx}'],
+      enabled: false,
+      exclude: ['**/*.{test,spec}.{ts,tsx}', 'node_modules', '.next'],
+      thresholds: {
+        lines: 80,
+        branches: 75,
+        functions: 85,
+        statements: 80,
+      },
+      reporter: ['text', 'html'],
+    },
   },
   resolve: {
     alias: {
