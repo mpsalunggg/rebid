@@ -13,6 +13,7 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
+import { Ionicons } from '@react-native-vector-icons/ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { getColors } from '@/theme/colors';
@@ -130,9 +131,11 @@ export default function LoginScreen() {
                   showPassword ? 'Hide password' : 'Show password'
                 }
               >
-                <Text style={{ color: colors.primary, fontSize: 14 }}>
-                  {showPassword ? 'Hide' : 'Show'}
-                </Text>
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={20}
+                  color={colors.primary}
+                />
               </Pressable>
             </View>
 
