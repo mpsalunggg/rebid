@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -54,11 +55,22 @@ export default function LoginScreen() {
               },
             ]}
           >
-            <Text style={[styles.brandTitle, { color: colors.foreground }]}>
-              Rebid App
-            </Text>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
+            >
+              <Image
+                source={require('../../../assets/rebid.png')}
+                style={{ width: 45, height: 45, resizeMode: 'contain' }}
+              />
+              <Text style={[styles.brandTitle, { color: colors.foreground }]}>
+                Rebid App
+              </Text>
+            </View>
             <Text
-              style={[styles.subtitle, { color: colors.mutedForeground }]}
+              style={[
+                styles.subtitle,
+                { color: colors.mutedForeground, paddingTop: 10 },
+              ]}
             >
               Sign in to your account
             </Text>
@@ -111,10 +123,12 @@ export default function LoginScreen() {
                 textContentType="password"
               />
               <Pressable
-                onPress={() => setShowPassword((v) => !v)}
+                onPress={() => setShowPassword(v => !v)}
                 style={styles.togglePassword}
                 accessibilityRole="button"
-                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                accessibilityLabel={
+                  showPassword ? 'Hide password' : 'Show password'
+                }
               >
                 <Text style={{ color: colors.primary, fontSize: 14 }}>
                   {showPassword ? 'Hide' : 'Show'}
@@ -155,13 +169,18 @@ export default function LoginScreen() {
               )}
             </Pressable>
 
-            <Text style={[styles.registerRow, { color: colors.mutedForeground }]}>
+            <Text
+              style={[styles.registerRow, { color: colors.mutedForeground }]}
+            >
               Don&apos;t have an account?{' '}
               <Text
                 style={{ color: colors.primary, fontWeight: '600' }}
                 onPress={() => {
                   // TODO: navigate to Register when screen exists
-                  Alert.alert('Register', 'Registration screen is not implemented yet.');
+                  Alert.alert(
+                    'Register',
+                    'Registration screen is not implemented yet.',
+                  );
                 }}
               >
                 Register
